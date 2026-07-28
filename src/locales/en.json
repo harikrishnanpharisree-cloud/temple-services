@@ -1,0 +1,89 @@
+{
+  "templeNameShort": "Panackal Bhadrakali Devi Temple",
+  "nav": { "home": "Home", "schedule": "Schedule", "notices": "Notice Board", "offerings": "Offerings" },
+  "hero": {
+    "title": "Panackal Bhadrakali Devi Temple",
+    "sub": "ॐ ഭദ്രകാളി ദേവീ നമഃ",
+    "desc": "A sacred abode of Maa Bhadrakali, the supreme form of Shakti — fierce yet compassionate, destroyer of evil, protector of the devoted. Nestled in Kerala's sacred landscape, this temple has blessed generations of devotees with grace and divine protection.",
+    "timing": "Morning: 5:00 AM – 1:00 PM  |  Evening: 5:30 PM – 9:00 PM",
+    "timingNote": "Special poojas may alter timings on festival days.",
+    "glance": "Temple Timings at a Glance"
+  },
+  "home": {
+    "aboutTitle": "About the Temple",
+    "deity": { "h": "The Deity", "p": "Bhadrakali — the benevolent aspect of Kali — is worshipped here in the traditional Kerala Tantric tradition. She is depicted with eight arms, each holding a sacred weapon, standing upon the asura Darika." },
+    "history": { "h": "History & Origin", "p": "The temple traces its origins over five centuries ago, consecrated by the Panackal family in accordance with Tantric rites of the Kalari tradition. The main idol is swayambhu — self-manifested." },
+    "festivals": { "h": "Festivals", "items": ["Meena Bharani (Grand Annual Festival)","Karkidaka Vavu — Ancestral offerings","Navarathri — Nine nights of worship","Mahashivarathri — All-night vigil"] },
+    "reach": { "h": "How to Reach", "p": "Located in Kerala. Nearest bus stop: Panackal Junction (0.3 km). Nearest railway: Ernakulam (42 km). Parking available on the eastern side of the temple complex." }
+  },
+  "schedule": {
+    "title": "Daily Pooja Schedule",
+    "cols": ["Pooja / Ritual", "Time", "Description"],
+    "hours": { "h": "Temple Open Hours", "items": ["Morning: 5:00 AM – 1:00 PM","Evening: 5:30 PM – 9:00 PM","Festival Days: Open throughout"] },
+    "dress": { "h": "Dress Code", "items": ["Men: Mundu (dhoti) preferred","Women: Saree or churidar with dupatta","No shorts or sleeveless attire inside the sanctum"] }
+  },
+  "notices": {
+    "title": "Notice Board",
+    "tags": { "festival": "🎉 Festival", "important": "⚠️ Important", "general": "ℹ️ General" }
+  },
+  "offerings": {
+    "title": "Vazhipadu — Divine Offerings",
+    "subtitle": "Select the offerings you wish to dedicate to Maa Bhadrakali. Your name and birth star will be announced during the pooja.",
+    "devoteeTitle": "Devotee",
+    "nameLbl": "Full Name *",
+    "namePh": "e.g. Priya Krishnan",
+    "starLbl": "Birth Star (Nakshatra) *",
+    "starPh": "— Select Birth Star —",
+    "removeDevotee": "Remove",
+    "addDevotee": "+ Add Another Devotee",
+    "subtotal": "Subtotal",
+    "cartTitle": "🛕 Your Cart",
+    "starLabel": "Birth Star",
+    "dateLbl": "Preferred Date",
+    "grandTotal": "Grand Total",
+    "proceedPay": "🙏 Proceed to Pay",
+    "emptyPrompt": "☝️ Select offerings for a devotee to get started.",
+    "modalTitle": "May the Goddess Bless You!",
+    "modalBody": "Your offerings totalling ₹{{total}} for {{names}} have been received. In a production app, you would now be redirected to a secure payment gateway. Each offering will be performed on your chosen date.",
+    "modalClose": "✓ Close",
+    "bookingId": "Booking ID",
+    "submitting": "⏳ Submitting...",
+    "errorMsg": "Booking failed. Please try again."
+  },
+  "footer": {
+    "contact": "For inquiries: templeinfo@panackaldevi.in  |  +91 98470 XXXXX",
+    "copy": "© 2026 Panackal Bhadrakali Devi Temple Trust. All rights reserved."
+  },
+  "scheduleData": {
+    "s1": { "name": "Nirmalya Darshanam", "desc": "Morning cleansing ritual" },
+    "s2": { "name": "Usha Pooja", "desc": "Dawn worship with lamps" },
+    "s3": { "name": "Pantheeradi Pooja", "desc": "Midday offering" },
+    "s4": { "name": "Uchapooja", "desc": "Main noon ritual" },
+    "s5": { "name": "Deeparadhana", "desc": "Evening lamp offering" },
+    "s6": { "name": "Athazhapooja", "desc": "Night worship" },
+    "s7": { "name": "Thrippuka", "desc": "Final closing ritual" }
+  },
+  "noticesData": {
+    "n1": { "date": "Feb 20, 2026", "title": "Sivarathri Special Pooja – Feb 26", "body": "Special Mahashivarathri celebrations will be held on Feb 26. Ashtayamam from 6 AM through midnight. Devotees are welcome to participate in all eight sessions." },
+    "n2": { "date": "Feb 18, 2026", "title": "Temple Renovation – North Entrance Closed", "body": "The north entrance of the temple will be closed from Feb 22 to March 10 due to ongoing renovation work. Kindly use the east entrance during this period." },
+    "n3": { "date": "Feb 15, 2026", "title": "Online Offerings Now Available", "body": "Devotees can now book and pay for Vazhipadu (offerings) online. Your name and birth star will be announced during the pooja." },
+    "n4": { "date": "Feb 10, 2026", "title": "Meena Bharani Festival – March 14", "body": "The annual Meena Bharani festival — the grandest celebration — will be held on March 14. Special poojas from 4 AM. Prasadam distribution at noon." }
+  },
+  "starsData": {
+    "Ashwini": "Ashwini", "Bharani": "Bharani", "Krittika": "Krittika", "Rohini": "Rohini", "Mrigashira": "Mrigashira", "Ardra": "Ardra", "Punarvasu": "Punarvasu", "Pushya": "Pushya", "Ashlesha": "Ashlesha", "Magha": "Magha", "Purva Phalguni": "Purva Phalguni", "Uttara Phalguni": "Uttara Phalguni", "Hasta": "Hasta", "Chitra": "Chitra", "Swati": "Swati", "Vishakha": "Vishakha", "Anuradha": "Anuradha", "Jyeshtha": "Jyeshtha", "Moola": "Moola", "Purva Ashadha": "Purva Ashadha", "Uttara Ashadha": "Uttara Ashadha", "Shravana": "Shravana", "Dhanishtha": "Dhanishtha", "Shatabhisha": "Shatabhisha", "Purva Bhadrapada": "Purva Bhadrapada", "Uttara Bhadrapada": "Uttara Bhadrapada", "Revati": "Revati"
+  },
+  "offeringsData": {
+    "o1": { "name": "Pushpanjali", "desc": "Flower offering with chanting of sacred mantras." },
+    "o2": { "name": "Nilavilakku Pooja", "desc": "Brass lamp offering symbolising Bhadrakali's divine light." },
+    "o3": { "name": "Nivedyam (Aval & Sharkkara)", "desc": "Traditional offering of flattened rice with jaggery." },
+    "o4": { "name": "Manjal Thettiyathu", "desc": "Turmeric-soaked threads for protection and prosperity." },
+    "o5": { "name": "Deepa Pooja (101 Diyas)", "desc": "Lighting of 101 earthen lamps encircling the sanctum." },
+    "o6": { "name": "Kuruthikala (Symbolic)", "desc": "Symbolic traditional blood offering; fully sanctioned." },
+    "o7": { "name": "Thalamudiyatu (Chendamelam)", "desc": "Percussion ensemble dedicated to the Goddess — classical Kerala drum." },
+    "o8": { "name": "Poomudu & Vastra Samarpanam", "desc": "Fresh flower garlands and sacred cloth offered to the Goddess." },
+    "o9": { "name": "Ashtabhuja Archana", "desc": "Archana to all eight arms of Bhadrakali with 108 names." }
+  },
+  "misc": {
+    "om": "ॐ  ✦  ॐ  ✦  ॐ"
+  }
+}
