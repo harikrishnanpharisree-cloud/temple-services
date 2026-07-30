@@ -158,14 +158,14 @@ function HomePage({ lang, onNavigate }) {
       </div>
       <div className="section intro-section">
         <p className={`intro-text ${cx}`}>{t('home.intro')}</p>
-        <div style={{textAlign:'center'}}>
+        <div className="cta-center">
           <button className={`btn-cta ${cx}`} onClick={()=>onNavigate('About')}>{t('home.aboutCta')}</button>
         </div>
       </div>
       <div className="timing-bar">
-        <p style={{color:'var(--color-light-gold)',fontFamily:"'Yatra One',cursive",fontSize:'1.3rem',marginBottom:'.5rem'}} className={cx}>{t('hero.glance')}</p>
-        <p style={{color:'var(--color-deep-cream)',opacity:.8,fontSize:'.9rem'}} className={cx}>{t('hero.timing')}</p>
-        <p style={{color:'var(--color-gold)',fontSize:'.8rem',marginTop:'.5rem',opacity:.7}} className={cx}>{t('hero.timingNote')}</p>
+        <p className={`timing-label ${cx}`}>{t('hero.glance')}</p>
+        <p className={`timing-value ${cx}`}>{t('hero.timing')}</p>
+        <p className={`timing-note ${cx}`}>{t('hero.timingNote')}</p>
       </div>
       <div className="section reach-section">
         <h2 className={`section-title ${cx}`}>📍 {t('home.reach.h')}</h2>
@@ -175,7 +175,7 @@ function HomePage({ lang, onNavigate }) {
           <iframe
             title={t('home.reach.mapTitle')}
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d125794.9747298453!2d76.35680768416793!3d9.842559498911607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b087716e8a334c9%3A0xee55366e7d41f554!2sPanackal%20Devi%20Kshethram!5e0!3m2!1sen!2sin!4v1785380702481!5m2!1sen!2sin"
-            width="100%" height="320" style={{border:0,display:'block'}} loading="lazy"
+            className="map-iframe" loading="lazy"
             referrerPolicy="no-referrer-when-downgrade" allowFullScreen
           />
         </div>
@@ -183,7 +183,6 @@ function HomePage({ lang, onNavigate }) {
     </>
   );
 }
-// <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d125794.9747298453!2d76.35680768416793!3d9.842559498911607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b087716e8a334c9%3A0xee55366e7d41f554!2sPanackal%20Devi%20Kshethram!5e0!3m2!1sen!2sin!4v1785380702481!5m2!1sen!2sin" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
 
 const ABOUT_SECTIONS = ['deity', 'history', 'subDeities', 'festivals', 'rituals', 'darshan', 'committee'];
 const ABOUT_ICONS = { deity: '🛕', history: '📜', subDeities: '🕉️', festivals: '🌺', rituals: '🔥', darshan: '🚶', committee: '🏛️' };
@@ -336,13 +335,13 @@ function SchedulePage({ lang }) {
     <div className="section">
       <h2 className={`section-title ${cx}`}>{t('schedule.title')}</h2>
       <div className="section-rule"/>
-      <div style={{overflowX:'auto'}}>
+      <div className="table-scroll">
         <table className="schedule-table">
           <thead><tr>{t('schedule.cols', { returnObjects: true }).map((c,i)=><th key={i} className={cx}>{c}</th>)}</tr></thead>
           <tbody>
             {SCHEDULE_KEYS.map((k,i)=>(
               <tr key={i}>
-                <td style={{fontWeight:600,color:'var(--color-maroon)'}} className={cx}>{t(`scheduleData.${k}.name`)}</td>
+                <td className={`schedule-name ${cx}`}>{t(`scheduleData.${k}.name`)}</td>
                 <td><span className="time-badge">{SCHEDULE_TIMES[k]}</span></td>
               </tr>
             ))}
@@ -433,7 +432,7 @@ function OfferingsPage({ lang }) {
     <div className="section">
       <h2 className={`section-title ${cx}`}>{t('offerings.title')}</h2>
       <div className="section-rule"/>
-      <p style={{textAlign:'center',color:'var(--color-muted)',marginBottom:'.6rem',fontStyle:'italic',fontSize:'.95rem'}} className={cx}>{t('offerings.subtitle')}</p>
+      <p className={`offerings-subtitle ${cx}`}>{t('offerings.subtitle')}</p>
       <p className={`date-note ${cx}`}>📅 {t('offerings.dateNote')}</p>
 
       <div className="offerings-layout">
@@ -445,7 +444,7 @@ function OfferingsPage({ lang }) {
             <div className="dv-header">
               <span className={`dv-title ${cx}`}>
                 {t('offerings.devoteeTitle')} {idx+1}
-                {dev.name && <span style={{color:'var(--color-muted)',fontSize:'.82rem',fontWeight:400,marginLeft:'.5rem'}}>— {dev.name}</span>}
+                {dev.name && <span className="dv-name-tag">— {dev.name}</span>}
               </span>
               {cart.length>1 &&
                 <button className={`btn-rm-dv ${cx}`} onClick={()=>rmDev(dev.id)}>{t('offerings.removeDevotee')}</button>}
@@ -468,7 +467,7 @@ function OfferingsPage({ lang }) {
             </div>
 
             {/* Name + Star + Date */}
-            <div className="form-row" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
+            <div className="form-row form-row-3">
               <div className="fg">
                 <label className={cx}>{t('offerings.nameLbl')}</label>
                 <input className={cx} placeholder={t('offerings.namePh')} value={dev.name}
@@ -488,7 +487,7 @@ function OfferingsPage({ lang }) {
               </div>
             </div>
             {dev.offeringIds.length>0 &&
-              <p className="subtotal-hint">{t('offerings.subtotal')}: <strong style={{color:'var(--color-maroon)'}}>₹{sub.toLocaleString('en-IN')}</strong></p>}
+              <p className="subtotal-hint">{t('offerings.subtotal')}: <strong className="amount-highlight">₹{sub.toLocaleString('en-IN')}</strong></p>}
           </div>
         );
       })}
@@ -508,7 +507,7 @@ function OfferingsPage({ lang }) {
               <div className="cart-devotee" key={d.id}>
                 <div className="cart-dv-name">
                   👤 {d.name}
-                  <span style={{fontSize:'.8rem',fontWeight:400,color:'var(--color-deep-cream)',marginLeft:'.5rem'}}>
+                  <span className="cart-star-label">
                     ({t('offerings.starLabel')}: <span className={cx}>{t(`starsData.${d.star}`)}</span>)
                   </span>
                 </div>
@@ -519,11 +518,11 @@ function OfferingsPage({ lang }) {
                   </div>
                 ))}
                 {d.date && (
-                  <div style={{fontSize:'.78rem',color:'var(--color-light-gold)',marginTop:'.3rem',marginBottom:'.1rem'}}>
+                  <div className="cart-date">
                     📅 {new Date(d.date+'T00:00:00').toLocaleDateString(isMl?'ml-IN':'en-IN',{day:'numeric',month:'long',year:'numeric'})}
                   </div>
                 )}
-                <div style={{textAlign:'right',fontSize:'.8rem',color:'var(--color-deep-cream)',opacity:.65,marginTop:'.25rem'}}>
+                <div className="cart-subtotal">
                   {t('offerings.subtotal')}: ₹{sub.toLocaleString('en-IN')}
                 </div>
               </div>
@@ -539,7 +538,7 @@ function OfferingsPage({ lang }) {
               : `${t('offerings.proceedPay')} — ₹${grandTotal.toLocaleString('en-IN')}`}
           </button>
           {submitError && (
-            <p style={{color:'#EF4444',textAlign:'center',marginTop:'.7rem',fontSize:'.88rem'}} className={cx}>
+            <p className={`error-msg ${cx}`}>
               ⚠️ {submitError}
             </p>
           )}
@@ -557,7 +556,7 @@ function OfferingsPage({ lang }) {
             <h3 className={cx}>{t('offerings.modalTitle')}</h3>
             <p className={cx}>{t('offerings.modalBody', { total: grandTotal.toLocaleString('en-IN'), names: validEntries.map(d=>d.name).join(', ') })}</p>
             {bookingId && (
-              <p style={{marginTop:'1rem',fontSize:'.78rem',color:'var(--color-muted)',fontFamily:'monospace',background:'var(--color-deep-cream)',padding:'.4rem .8rem',borderRadius:'6px'}}>
+              <p className="booking-id">
                 {t('offerings.bookingId')}: {bookingId}
               </p>
             )}
@@ -647,11 +646,11 @@ export default function App() {
       {page==="Offerings" && <OfferingsPage lang={lang}/>}
 
       <footer className="footer">
-        <p style={{fontFamily:"'Yatra One',cursive",fontSize:'1.1rem',color:'var(--color-gold)',marginBottom:'.4rem'}} className={cx}>
+        <p className={`footer-brand ${cx}`}>
           🪔 {t('templeNameShort')}
         </p>
         <p className={cx}>{t('footer.contact')}</p>
-        <p style={{marginTop:'.5rem'}} className={cx}>{t('footer.copy')}</p>
+        <p className={`footer-copy ${cx}`}>{t('footer.copy')}</p>
       </footer>
     </>
   );

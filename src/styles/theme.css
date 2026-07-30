@@ -1,5 +1,17 @@
 :root {
   --container-max: 1320px;
+
+  /* ── Fonts ──────────────────────────────────────────────────────────────
+     Single source of truth for every font-family in the app. English/base
+     values live here; the .ml class (see app.css) swaps in the Malayalam
+     equivalents. Change a typeface for one language by editing just the
+     matching variable below — nothing else in the CSS needs to change. */
+  --font-body: 'Noto Serif', serif;              /* body copy, form fields — English/default */
+  --font-body-ml: 'Noto Serif Malayalam', serif; /* body copy, form fields — Malayalam */
+  --font-display: 'Yatra One', cursive;          /* headings, buttons, logo — English/default (no Malayalam glyphs) */
+  --font-display-ml: 'Gayathri', sans-serif;     /* headings, buttons, logo — Malayalam */
+  --font-devanagari: 'Noto Serif Devanagari', serif; /* Sanskrit verse text, either language */
+
   --color-maroon: #6B0F1A;
   --color-dark-maroon: #4A0910;
   --color-gold: #C8973A;
