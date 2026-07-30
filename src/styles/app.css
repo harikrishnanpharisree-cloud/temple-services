@@ -8,16 +8,41 @@
   padding: 0
 }
 
-body {
+/* Browsers don't cascade font-family into form controls by default — without this,
+   any input/select/button falls back to the UA font and can't pick up --font-body(-ml)
+   or --font-display(-ml) through normal inheritance, no matter what class it carries. */
+input,
+select,
+textarea,
+button {
+  font-family: inherit
+}
+
+/* Theme (data-theme) and language (.ml) both live on .app-shell, not on
+   <html>/<body> — since custom properties only cascade parent-to-child, and
+   .app-shell is necessarily a descendant of <body> (React mounts inside
+   #root, itself inside <body>), <body> could never see either variable
+   reassignment if it kept its own background/font/color declarations. So
+   .app-shell — a real box, not display:contents, since it needs to paint —
+   takes over that role as the page's effective visual "body". */
+.app-shell {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
   background: var(--color-cream);
   font-family: var(--font-body);
   color: var(--color-text)
 }
 
-/* .ml marks Malayalam-language text; it swaps both font variables to their
-   Malayalam equivalents (see --font-body-ml / --font-display-ml in theme.css). */
+/* .ml marks Malayalam. It reassigns --font-body/--font-display themselves (not
+   just its own font-family), so the swap cascades through descendants that read
+   those variables — e.g. body's own `font-family: var(--font-body)` — even when
+   .ml sits on a distant ancestor like <html> rather than on that element itself.
+   The direct font-family below only matters for .ml used on a leaf with no
+   children (e.g. the "മലയാളം" toggle button label). */
 .ml {
   font-family: var(--font-body-ml);
+  --font-body: var(--font-body-ml);
   --font-display: var(--font-display-ml)
 }
 
@@ -81,6 +106,7 @@ body {
 
 .nav-logo-sub {
   color: var(--color-gold);
+  font-family: var(--font-body-ml);
   font-size: .65rem;
   opacity: .8
 }
@@ -91,22 +117,33 @@ body {
   gap: .5rem
 }
 
-.theme-toggle {
-  background: none;
-  border: 1px solid rgba(200, 151, 58, .3);
-  color: var(--color-gold);
-  border-radius: 20px;
-  padding: 4px 10px;
-  cursor: pointer;
-  font-size: .8rem;
-  transition: all .2s;
+/* Three-way theme selector (light/dark/classic) — same pill-group shape as
+   .lang-toggle, since a single icon-toggle button doesn't scale past 2 states. */
+.theme-select {
   display: flex;
-  align-items: center;
-  gap: 5px;
+  background: rgba(255, 255, 255, .08);
+  border-radius: 20px;
+  padding: 3px;
+  border: 1px solid rgba(200, 151, 58, .3)
 }
 
-.theme-toggle:hover {
+.theme-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: .85rem;
+  padding: .22rem .55rem;
+  border-radius: 16px;
+  transition: all .2s;
+  line-height: 1.4
+}
+
+.theme-btn:hover {
   background: rgba(255, 255, 255, .1)
+}
+
+.theme-btn.active {
+  background: var(--color-gold)
 }
 
 .lang-toggle {
@@ -270,6 +307,7 @@ body {
 
 .hero-sub {
   color: var(--color-gold);
+  font-family: var(--font-body-ml);
   font-style: italic;
   font-size: clamp(.85rem, 2vw, 1.1rem);
   opacity: .9
@@ -289,7 +327,7 @@ body {
 }
 
 .hero-desc {
-  color: var(--color-deep-cream);
+  color: var(--color-cream-text);
   max-width: 48ch;
   margin: 0;
   line-height: 1.9;
@@ -680,15 +718,20 @@ body {
   white-space: pre-line
 }
 
+/* This row is always Malayalam script and the transliteration row always Latin
+   script, regardless of the site's current UI language — so both pin their own
+   font-family explicitly instead of inheriting the global .ml toggle. */
 .verse-text-ml {
   color: var(--color-light-gold);
+  font-family: var(--font-body-ml);
   font-size: 1.25rem;
   line-height: 1.9;
   white-space: pre-line
 }
 
 .verse-text-translit {
-  color: var(--color-deep-cream);
+  color: var(--color-cream-text);
+  font-family: var(--font-latin);
   font-style: italic;
   font-size: 1rem;
   line-height: 1.9;
@@ -697,7 +740,7 @@ body {
 }
 
 .verse-meaning-row .verse-text-meaning {
-  color: var(--color-cream);
+  color: var(--color-cream-text);
   font-size: 1rem;
   line-height: 1.85;
   white-space: pre-line
@@ -816,7 +859,6 @@ body {
   border: 1.5px solid var(--color-deep-cream);
   border-radius: 6px;
   padding: .55rem .85rem;
-  font-family: var(--font-body);
   font-size: .87rem;
   color: var(--color-text);
   background: var(--color-card-bg);
@@ -1073,7 +1115,6 @@ body {
   border: 1.5px solid var(--color-deep-cream);
   border-radius: 6px;
   padding: .55rem .85rem;
-  font-family: var(--font-body);
   font-size: .9rem;
   color: var(--color-text);
   background: var(--color-card-bg);
@@ -1150,7 +1191,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: .87rem;
-  color: var(--color-deep-cream);
+  color: var(--color-cream-text);
   margin-bottom: .25rem
 }
 
@@ -1264,7 +1305,7 @@ body {
 }
 
 .footer p {
-  color: var(--color-deep-cream);
+  color: var(--color-cream-text);
   opacity: .7
 }
 
@@ -1277,6 +1318,17 @@ body {
 
 .footer-copy {
   margin-top: .5rem
+}
+
+.footer-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1.2rem 0;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(200, 151, 58, .2)
 }
 
 .timing-bar {
@@ -1293,7 +1345,7 @@ body {
 }
 
 .timing-value {
-  color: var(--color-deep-cream);
+  color: var(--color-cream-text);
   opacity: .8;
   font-size: .9rem
 }
@@ -1352,7 +1404,7 @@ body {
 .cart-star-label {
   font-size: .8rem;
   font-weight: 400;
-  color: var(--color-deep-cream);
+  color: var(--color-cream-text);
   margin-left: .5rem
 }
 
@@ -1366,13 +1418,13 @@ body {
 .cart-subtotal {
   text-align: right;
   font-size: .8rem;
-  color: var(--color-deep-cream);
+  color: var(--color-cream-text);
   opacity: .65;
   margin-top: .25rem
 }
 
 .error-msg {
-  color: #EF4444;
+  color: var(--color-error);
   text-align: center;
   margin-top: .7rem;
   font-size: .88rem

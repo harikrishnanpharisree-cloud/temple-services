@@ -6,25 +6,40 @@
      values live here; the .ml class (see app.css) swaps in the Malayalam
      equivalents. Change a typeface for one language by editing just the
      matching variable below — nothing else in the CSS needs to change. */
-  --font-body: 'Noto Serif', serif;              /* body copy, form fields — English/default */
+  --font-body: 'Noto Serif', serif;              /* body copy, form fields — active/current language */
   --font-body-ml: 'Noto Serif Malayalam', serif; /* body copy, form fields — Malayalam */
-  --font-display: 'Yatra One', cursive;          /* headings, buttons, logo — English/default (no Malayalam glyphs) */
+  --font-display: 'Yatra One', cursive;          /* headings, buttons, logo — active/current language */
   --font-display-ml: 'Gayathri', sans-serif;     /* headings, buttons, logo — Malayalam */
   --font-devanagari: 'Noto Serif Devanagari', serif; /* Sanskrit verse text, either language */
+  /* --font-body/--font-display are reassigned by .ml (see app.css) so they always mean
+     "the current UI language's font" for content that should follow the language toggle.
+     --font-latin never changes — use it for content that must stay Latin script even
+     while the rest of the page is in Malayalam (e.g. an English transliteration row). */
+  --font-latin: 'Noto Serif', serif;
 
-  --color-maroon: #6B0F1A;
-  --color-dark-maroon: #4A0910;
-  --color-gold: #C8973A;
-  --color-light-gold: #E8BC6A;
-  --color-cream: #FDF6E3;
-  --color-deep-cream: #F5E9C8;
-  --color-orange: #D4521A;
-  --color-text: #2C1A00;
-  --color-muted: #7A5C3A;
-  --color-card-bg: #ffffff;
-  --color-notice-bg: #FFFBF0;
-  --color-devotee-bg: #FFF8ED;
-  --color-border: #ddd;
+
+  --color-maroon: #386041;
+  --color-dark-maroon: #24402B;
+  --color-gold: #C69550;
+  --color-light-gold: #E4C58B;
+  --color-cream: #F8F6F0;
+  --color-deep-cream: #ECE8DF;
+  --color-orange: #73BBAA;
+  --color-text: #223026;
+  --color-muted: #5E7365;
+  --color-card-bg: #FFFFFF;
+  --color-notice-bg: #EEF7F4;
+  --color-devotee-bg: #F2F6F3;
+  --color-border: #C8D6CD;
+  --color-success: #387A52;
+  --color-error: #B55A52;
+  /* --color-cream / --color-deep-cream are adaptive *page-background* shades —
+     they intentionally invert to near-black in dark mode. --color-cream-text
+     is a separate, never-flipped constant for light cream text sitting on
+     components that stay dark-maroon in both themes (hero, footer, cart-box,
+     timing-bar, verse-card) — using the background token there instead would
+     turn the text almost invisible once dark mode flips it to near-black. */
+  --color-cream-text: #F5E9C8;
 }
 
 [data-theme="dark"] {
@@ -41,4 +56,25 @@
   --color-notice-bg: #261608;
   --color-devotee-bg: #241407;
   --color-border: #4A2B14;
+  --color-success: #4ADE80;
+  --color-error: #EF4444;
+}
+
+/* "Classic" theme — Maroon / Gold / Saffron / Ivory palette. */
+[data-theme="classic"] {
+  --color-maroon: #7B1E2B;
+  --color-dark-maroon: #50131C;
+  --color-gold: #D4AF37;
+  --color-light-gold: #E3CB7D;
+  --color-cream: #FFF8E7;
+  --color-deep-cream: #F2E6C9;
+  --color-orange: #FF9933;
+  --color-text: #2F2F2F;
+  --color-muted: #6B5E4E;
+  --color-card-bg: #FFFFFF;
+  --color-notice-bg: #FFFDF5;
+  --color-devotee-bg: #FFF9EC;
+  --color-border: #E8DDC3;
+  --color-success: #2E7D32;
+  --color-error: #C62828;
 }
