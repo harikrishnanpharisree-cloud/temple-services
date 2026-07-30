@@ -1,4 +1,5 @@
 :root {
+  --container-max: 1320px;
   --color-maroon: #6B0F1A;
   --color-dark-maroon: #4A0910;
   --color-gold: #C8973A;

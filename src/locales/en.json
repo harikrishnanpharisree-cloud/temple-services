@@ -1,25 +1,104 @@
 {
-  "templeNameShort": "Panackal Bhadrakali Devi Temple",
-  "nav": { "home": "Home", "schedule": "Schedule", "notices": "Notice Board", "offerings": "Offerings" },
+  "templeNameShort": "Sree Panayakkal Bhagavathi Temple",
+  "nav": { "home": "Home", "about": "About", "schedule": "Schedule", "notices": "Notice Board", "offerings": "Offerings" },
   "hero": {
-    "title": "Panackal Bhadrakali Devi Temple",
-    "sub": "ॐ ഭദ്രകാളി ദേവീ നമഃ",
-    "desc": "A sacred abode of Maa Bhadrakali, the supreme form of Shakti — fierce yet compassionate, destroyer of evil, protector of the devoted. Nestled in Kerala's sacred landscape, this temple has blessed generations of devotees with grace and divine protection.",
-    "timing": "Morning: 5:00 AM – 1:00 PM  |  Evening: 5:30 PM – 9:00 PM",
-    "timingNote": "Special poojas may alter timings on festival days.",
-    "glance": "Temple Timings at a Glance"
+    "title": "Sree Panayakkal Bhagavathi Temple",
+    "sub": "അമ്മേ നാരായണ ദേവീ നാരായണ ഭദ്രേ നാരായണ",
+    "desc": "A sacred abode of Sree Bhagavathi (Bhadrakali), the Grama Devata of Kattikkunnu — fierce toward evil, compassionate toward her devotees, worshipped here in the Kerala Tantric tradition. Near Chembu, Vaikom, this ancient temple blesses devotees through its daily poojas and its grand annual Pooram Mahotsavam.",
+    "timing": "Morning: 5:00 AM – 12:00 PM  |  Evening: 5:00 PM – 8:30 PM",
+    "timingNote": "Timings extend and additional rituals are held during the Pooram Mahotsavam and other festival days.",
+    "glance": "Temple Timings at a Glance",
+    "photoCaption": "Temple entrance and Sree Bhadra Annadana Mandapam, Kattikkunnu"
   },
   "home": {
-    "aboutTitle": "About the Temple",
-    "deity": { "h": "The Deity", "p": "Bhadrakali — the benevolent aspect of Kali — is worshipped here in the traditional Kerala Tantric tradition. She is depicted with eight arms, each holding a sacred weapon, standing upon the asura Darika." },
-    "history": { "h": "History & Origin", "p": "The temple traces its origins over five centuries ago, consecrated by the Panackal family in accordance with Tantric rites of the Kalari tradition. The main idol is swayambhu — self-manifested." },
-    "festivals": { "h": "Festivals", "items": ["Meena Bharani (Grand Annual Festival)","Karkidaka Vavu — Ancestral offerings","Navarathri — Nine nights of worship","Mahashivarathri — All-night vigil"] },
-    "reach": { "h": "How to Reach", "p": "Located in Kerala. Nearest bus stop: Panackal Junction (0.3 km). Nearest railway: Ernakulam (42 km). Parking available on the eastern side of the temple complex." }
+    "intro": "Sree Panayakkal Bhagavathi Temple is the Grama Devata shrine of Kattikkunnu, where Sree Bhagavathi — worshipped as Bhadrakali — has blessed devotees with grace and protection for generations. Regular poojas are held every Tuesday and Friday, on Punartham and Sankramam days, and through other special observances, culminating each year in the grand seven-day Pooram Mahotsavam.",
+    "aboutCta": "Learn more about the temple →",
+    "reach": { "h": "How to Reach", "p": "Panayakkal Devaswom, Kattikkunnu, Chembu P.O., Vaikom – 686608, Kerala — near Vaikom in Kottayam district. For inquiries: 8086469089 (President), 9446552071 (Secretary).", "mapTitle": "Map showing the temple's location" }
+  },
+  "about": {
+    "title": "About Sree Panayakkal Bhagavathi Temple",
+    "deity": {
+      "h": "The Deity",
+      "p": "Sree Bhagavathi is worshipped here as Bhadrakali — verily the Mother of the Universe (Jagat Matha), the Parashakti from whom all creation springs. Though she assumed a fierce (Rudra) form to destroy the asura Darika, in her peaceful form she is Lalithambika, granting all wishes to sincere devotees. Devotional tradition describes her as dark as a monsoon cloud, three-eyed, seated upon her vahana Vetalam, bearing sword, shield, and Darika's severed head in her many arms, garlanded with skulls and surrounded by her retinue — all-boon-giving, at once Rudra toward evil and gentle toward her devotees.",
+      "verse": {
+        "devanagari": "काली काली महाकाली भद्रकाली नमोऽस्तुते ।\nकुलं च कुलधर्मं च मां च पालय पालय ॥",
+        "malayalam": "കാളി കാളി മഹാകാളി ഭദ്രകാളി നമോസ്തുതേ!\nകുലം ച കുലധര്‍മ്മം ച മാം ച പാലയ പാലയ!!",
+        "transliteration": "Kāli Kāli Mahākāli, Bhadrakāli Namostute!\nKulaṁ cha kuladharmaṁ cha, māṁ cha pālaya pālaya!!",
+        "meaning": "O Kali, Mahakali, Bhadrakali, I bow to you! Protect my lineage and its dharma, and protect me!",
+        "labels": { "devanagari": "Devanagari (Sanskrit)", "malayalam": "Malayalam", "transliteration": "English Transliteration", "meaning": "Meaning" }
+      }
+    },
+    "history": {
+      "h": "History & Devaswom",
+      "p": "Sree Panayakkal Bhagavathi Temple is an ancient and sacred shrine at Kattikkunnu, revered as the Grama Devata (village deity) of the locality. Temple rites are led by Tantri Brahmasri Manayathattu Chandrasekharan Namboothiri and Melshanti Brahmasri Kadambanattillam Appukuttan Namboothiri, and the temple is administered by the Panayakkal Devaswom Managing Committee together with several local community organisations (AKDS, KPMS, KSS, NSS and KPSS)."
+    },
+    "subDeities": {
+      "h": "Sub-Deities (Upadevas)",
+      "items": [
+        { "icon": "🐘", "name": "Sri Ganapathi", "desc": "Remover of obstacles, worshipped first before all undertakings — even the Devas sought his blessing before Palazhi Madhanam." },
+        { "icon": "🏹", "name": "Sri Dharmasastha (Ayyappan)", "desc": "A fierce, luminous form honoured especially during the 41-day Mandalapooja each Nov–Dec." },
+        { "icon": "🦁", "name": "Durga Devi", "desc": "One of the five goddesses who enable creation; bestows intellect, fame, liberation and happiness on those who take refuge in her." },
+        { "icon": "🌿", "name": "Yakshiyamma", "desc": "A protector Desa Devata (regional deity) believed to fulfil the sincere requests of those who seek her refuge." },
+        { "icon": "🕉️", "name": "Brahmarakshas", "desc": "The protective Brahma-tejas, worshipped as guardian of the temple land and holder of the Guru position." },
+        { "icon": "🐍", "name": "Nagarajavu & Nagayakshi", "desc": "Serpent deities worshipped for progeny, wealth and prosperity." }
+      ]
+    },
+    "festivals": {
+      "h": "Major Festivals",
+      "items": [
+        { "icon": "🪔", "name": "Pooram Mahotsavam (Mar 3–9)", "desc": "The grand 7-day annual festival featuring the Thiruvabharana procession, Uthram Pongala, nightly Kalamezhuthu Pattu, Darikan & Garudan Thookkam and Mudiyettu, closing with Vadakkupurathu Guruthi before dawn." },
+        { "icon": "🙏", "name": "Ezhampooja (Mar 15)", "desc": "After 7 days of closed nada following the Guruthi, the Devi grants darshan again on the closing pooja day, with a special Guruthi Tharppanam within the inner enclosure." },
+        { "icon": "⚔️", "name": "Navaratri (Oct 18–21)", "desc": "Nine nights honouring the Devi's nine forms, culminating in Durgashtami, Mahanavami and Vijayadashami — with Vidyarambham (children's first-letters ceremony) on Vijayadashami morning." },
+        { "icon": "🕯️", "name": "Mandalapooja (Nov 17 – Dec 27)", "desc": "A 41-day vratham period honouring Sree Dharmasastha, with daily nada-opening, pooja and vazhipadu through the Makara Vilakku season." },
+        { "icon": "🌾", "name": "Vishu & Pathamudayam (Apr 15 & 23)", "desc": "Vishukani is arranged at the sanctum on Vishu morning; Pathamudayam (the 10th day after) is considered especially auspicious for any new undertaking." },
+        { "icon": "📿", "name": "Punartham & Sankramam poojas", "desc": "Every Punartham (birth-star) day and Sankramam (solar transition) day through the year, with Prasada Oottu (community feast) held on Punartham days." }
+      ]
+    },
+    "rituals": {
+      "h": "Rituals & Their Legends",
+      "items": [
+        { "name": "Kalamezhuthu Pattu", "desc": "On all seven festival evenings, devotees draw the divine form of the Devi on the courtyard mandapam and sing of her deeds. Legend holds that after slaying Darika, the Devi's wrath would not subside — until Shiva blessed the practice, promising that whoever draws her form and sings her praises would be freed of disease and granted prosperity." },
+        { "name": "Uthram Pongala", "desc": "A communal rice offering in which devotees light hundreds of hearths together; as the pots boil over, the rice's husk-like \"ego\" is said to dissolve, symbolically carrying away sin and sorrow with the rising smoke." },
+        { "name": "Darikan Thookkam", "desc": "A costumed re-enactment of the arrogant asura Darika challenging every direction to battle, accompanied by Chenda melam and Thalappoli, performed on the final night of the festival." },
+        { "name": "Garudan Thookkam", "desc": "Devotees are carried on traditional hanging apparatus depicting Garuda, who — per legend — voluntarily offered his own blood to satisfy the Devi's vahana Vethalam after the battle with Darika." },
+        { "name": "Mudiyettu", "desc": "An extremely rare ritual dance-drama, performed only at Bhagavathi shrines, re-enacting the Devi's creation from Shiva's third eye and her destruction of Darika. Offered as a vazhipadu against smallpox, ill omens and adversity." },
+        { "name": "Vadakkupurathu Guruthi", "desc": "A symbolic \"blood\" offering (a turmeric-lime mixture, replacing the animal blood historically offered) made to appease the blood-thirsty Devi after Darika-vadham, marking the ritual close of the festival before dawn." }
+      ]
+    },
+    "darshan": {
+      "h": "Temple Darshan Order",
+      "steps": [
+        "Outside the Chuttambalam (courtyard), first bow and pray to Yakshiyamma, Brahmarakshas, Nagarajavu and Nagayakshi.",
+        "Enter through the eastern nada, praying to the Devi as you step in.",
+        "Turn left and pray to Sri Ganapathi, Dharmasastha, and Durga Devi.",
+        "Proceed to the front of the Sreekovil and pray to Sree Bhagavathi.",
+        "Turn left again, receive theertham and prasadam from the Melshanti, and complete the pradakshinam (circumambulation).",
+        "Exit through the northern nada — entry via the southern or western sides is not permitted."
+      ]
+    },
+    "committee": {
+      "h": "Devaswom Governing Committee",
+      "intro": "The temple is administered by the Panayakkal Devaswom Managing Committee, supported by representatives of the local community organisations.",
+      "members": [
+        { "name": "C.P. Krishnan Nair", "role": "Devaswom President" },
+        { "name": "Manoj Babu, Thoppilparambil", "role": "Devaswom Secretary" },
+        { "name": "Devadas A.D.", "role": "President, A.K.D.S." },
+        { "name": "Raghu P.N.", "role": "Secretary, A.K.D.S." },
+        { "name": "N. Rejimon", "role": "Secretary, K.P.M.S." },
+        { "name": "A.N. Sukhalal Karithra", "role": "President, K.P.M.S." },
+        { "name": "E.G. Sunilkumar", "role": "President, K.S.S." },
+        { "name": "Ramachandran Kandangara", "role": "Secretary, K.S.S." },
+        { "name": "Sathishkumar K.K.", "role": "Secretary, N.S.S." },
+        { "name": "K. Viswambaran, Kottarathil", "role": "Secretary, K.P.S.S." },
+        { "name": "M.T. Leji", "role": "President, K.P.S.S." }
+      ]
+    }
   },
   "schedule": {
     "title": "Daily Pooja Schedule",
-    "cols": ["Pooja / Ritual", "Time", "Description"],
-    "hours": { "h": "Temple Open Hours", "items": ["Morning: 5:00 AM – 1:00 PM","Evening: 5:30 PM – 9:00 PM","Festival Days: Open throughout"] },
+    "cols": ["Pooja / Ritual", "Time"],
+    "openDays": { "h": "Temple Open Days", "items": ["Every Tuesday & Friday","Punartham (birth-star) day each month","Sankramam (solar transition) days","Daily throughout the 41-day Mandalapooja (Nov–Dec)","All days of the Pooram Mahotsavam (Mar 3–9) and other listed festival days"] },
+    "hours": { "h": "Temple Open Hours", "items": ["Morning: 5:00 AM – 12:00 PM","Evening: 5:00 PM – 8:30 PM","Festival days: extended hours with additional rituals"] },
     "dress": { "h": "Dress Code", "items": ["Men: Mundu (dhoti) preferred","Women: Saree or churidar with dupatta","No shorts or sleeveless attire inside the sanctum"] }
   },
   "notices": {
@@ -27,13 +106,15 @@
     "tags": { "festival": "🎉 Festival", "important": "⚠️ Important", "general": "ℹ️ General" }
   },
   "offerings": {
-    "title": "Vazhipadu — Divine Offerings",
-    "subtitle": "Select the offerings you wish to dedicate to Maa Bhadrakali. Your name and birth star will be announced during the pooja.",
+    "title": "Vazhipadu — Nadaykkal Para Offerings",
+    "subtitle": "Select the Nadaykkal Para (sacred measure-filling) offerings you wish to dedicate to Sree Bhagavathi. Your name and birth star will be announced during the pooja.",
     "devoteeTitle": "Devotee",
     "nameLbl": "Full Name *",
     "namePh": "e.g. Priya Krishnan",
     "starLbl": "Birth Star (Nakshatra) *",
     "starPh": "— Select Birth Star —",
+    "datePh": "Select a pooja day",
+    "dateNote": "Offerings can only be scheduled on days the temple holds pooja — Tuesdays, Fridays, and the special days shown in the calendar.",
     "removeDevotee": "Remove",
     "addDevotee": "+ Add Another Devotee",
     "subtotal": "Subtotal",
@@ -51,37 +132,40 @@
     "errorMsg": "Booking failed. Please try again."
   },
   "footer": {
-    "contact": "For inquiries: templeinfo@panackaldevi.in  |  +91 98470 XXXXX",
-    "copy": "© 2026 Panackal Bhadrakali Devi Temple Trust. All rights reserved."
+    "contact": "For inquiries: 8086469089 (President)  |  9446552071 (Secretary)",
+    "copy": "© 2026 Sree Panayakkal Bhagavathi Devaswom, Kattikkunnu. All rights reserved."
   },
   "scheduleData": {
-    "s1": { "name": "Nirmalya Darshanam", "desc": "Morning cleansing ritual" },
-    "s2": { "name": "Usha Pooja", "desc": "Dawn worship with lamps" },
-    "s3": { "name": "Pantheeradi Pooja", "desc": "Midday offering" },
-    "s4": { "name": "Uchapooja", "desc": "Main noon ritual" },
-    "s5": { "name": "Deeparadhana", "desc": "Evening lamp offering" },
-    "s6": { "name": "Athazhapooja", "desc": "Night worship" },
-    "s7": { "name": "Thrippuka", "desc": "Final closing ritual" }
+    "s1": { "name": "Nadathurappu (Morning)", "desc": "Sanctum opens for the day" },
+    "s2": { "name": "Alankara Deeparadhana", "desc": "Lamp offering after the Devi is bathed and adorned; said to dispel doshas from past lives" },
+    "s3": { "name": "Mahaganapathi Homam", "desc": "Fire ritual to Lord Ganapathi for an auspicious start to the day" },
+    "s4": { "name": "Prabhata Pooja", "desc": "Morning worship and devotee vazhipadu" },
+    "s5": { "name": "Uchapooja Deeparadhana", "desc": "Midday lamp offering, said to remove all sins and grant prosperity" },
+    "s6": { "name": "Nadayadappu (Noon)", "desc": "Sanctum closes until evening" },
+    "s7": { "name": "Nadathurappu (Evening)", "desc": "Sanctum reopens for the evening" },
+    "s8": { "name": "Sandhya Deeparadhana", "desc": "Dusk lamp offering, said to grant all-round prosperity" },
+    "s9": { "name": "Athazhapooja Deeparadhana", "desc": "Night lamp offering, said to grant marital happiness" },
+    "s10": { "name": "Nadayadappu (Night)", "desc": "Sanctum closes for the day" }
   },
   "noticesData": {
-    "n1": { "date": "Feb 20, 2026", "title": "Sivarathri Special Pooja – Feb 26", "body": "Special Mahashivarathri celebrations will be held on Feb 26. Ashtayamam from 6 AM through midnight. Devotees are welcome to participate in all eight sessions." },
-    "n2": { "date": "Feb 18, 2026", "title": "Temple Renovation – North Entrance Closed", "body": "The north entrance of the temple will be closed from Feb 22 to March 10 due to ongoing renovation work. Kindly use the east entrance during this period." },
-    "n3": { "date": "Feb 15, 2026", "title": "Online Offerings Now Available", "body": "Devotees can now book and pay for Vazhipadu (offerings) online. Your name and birth star will be announced during the pooja." },
-    "n4": { "date": "Feb 10, 2026", "title": "Meena Bharani Festival – March 14", "body": "The annual Meena Bharani festival — the grandest celebration — will be held on March 14. Special poojas from 4 AM. Prasadam distribution at noon." }
+    "n1": { "date": "Feb 20, 2026", "title": "Pooram Mahotsavam — March 3–9, 2026", "body": "The temple's grand annual festival begins with the Thiruvabharana Ghoshayathra on March 3 and continues through Uthram Pongala, Kalamezhuthu Pattu, and Darikan & Garudan Thookkam, and Mudiyettu, concluding with Vadakkupurathu Guruthi before dawn on March 9. All devotees are cordially invited." },
+    "n2": { "date": "Feb 18, 2026", "title": "Book Prasada Oottu & Mudiyettu in Advance", "body": "Prasada Oottu (held on all Punartham and festival days) and 2027 Mudiyettu slots are now open for booking. Mudiyettu sponsorship ₹12,000 (advance ₹2,000); Darikan Thookkam ₹1,300; Garudan Thookkam ₹2,100. Call 8086469089 / 9446552071 to reserve." },
+    "n3": { "date": "Feb 15, 2026", "title": "Temple Darshan Order", "body": "Please enter through the eastern nada, pray to Yakshiyamma, Brahmarakshas and the Naga deities first, then turn left past Sri Ganapathi, Dharmasastha and Durga Devi to reach the Sreekovil. Complete the pradakshinam and exit through the northern nada; entry via the southern or western sides is not permitted." },
+    "n4": { "date": "Feb 10, 2026", "title": "Ezhampooja — March 15, 2026", "body": "After 7 days of closed nada following Vadakkupurathu Guruthi, the Devi grants Ezhampooja darshan on March 15 (Meenam 1, Thiruvonam) — extra auspicious this year as it coincides with Ekadasi. Includes Akamkalathil Ezhaam Guruthi Tharppanam at 10 AM and Prasada Oottu at 12:30 PM." }
   },
   "starsData": {
     "Ashwini": "Ashwini", "Bharani": "Bharani", "Krittika": "Krittika", "Rohini": "Rohini", "Mrigashira": "Mrigashira", "Ardra": "Ardra", "Punarvasu": "Punarvasu", "Pushya": "Pushya", "Ashlesha": "Ashlesha", "Magha": "Magha", "Purva Phalguni": "Purva Phalguni", "Uttara Phalguni": "Uttara Phalguni", "Hasta": "Hasta", "Chitra": "Chitra", "Swati": "Swati", "Vishakha": "Vishakha", "Anuradha": "Anuradha", "Jyeshtha": "Jyeshtha", "Moola": "Moola", "Purva Ashadha": "Purva Ashadha", "Uttara Ashadha": "Uttara Ashadha", "Shravana": "Shravana", "Dhanishtha": "Dhanishtha", "Shatabhisha": "Shatabhisha", "Purva Bhadrapada": "Purva Bhadrapada", "Uttara Bhadrapada": "Uttara Bhadrapada", "Revati": "Revati"
   },
   "offeringsData": {
-    "o1": { "name": "Pushpanjali", "desc": "Flower offering with chanting of sacred mantras." },
-    "o2": { "name": "Nilavilakku Pooja", "desc": "Brass lamp offering symbolising Bhadrakali's divine light." },
-    "o3": { "name": "Nivedyam (Aval & Sharkkara)", "desc": "Traditional offering of flattened rice with jaggery." },
-    "o4": { "name": "Manjal Thettiyathu", "desc": "Turmeric-soaked threads for protection and prosperity." },
-    "o5": { "name": "Deepa Pooja (101 Diyas)", "desc": "Lighting of 101 earthen lamps encircling the sanctum." },
-    "o6": { "name": "Kuruthikala (Symbolic)", "desc": "Symbolic traditional blood offering; fully sanctioned." },
-    "o7": { "name": "Thalamudiyatu (Chendamelam)", "desc": "Percussion ensemble dedicated to the Goddess — classical Kerala drum." },
-    "o8": { "name": "Poomudu & Vastra Samarpanam", "desc": "Fresh flower garlands and sacred cloth offered to the Goddess." },
-    "o9": { "name": "Ashtabhuja Archana", "desc": "Archana to all eight arms of Bhadrakali with 108 names." }
+    "o1": { "name": "Nelpara", "desc": "A paddy offering at the sacred nada measure, sought for relief from illness (Roga Shamanam)." },
+    "o2": { "name": "Aripara", "desc": "A rice offering for abundance of grain and prosperity (Dhanya Samruddhi)." },
+    "o3": { "name": "Avalpara", "desc": "A flattened-rice offering for the blessing of progeny (Santhana Soubhagyam)." },
+    "o4": { "name": "Malarpara", "desc": "A puffed-rice offering for general auspiciousness (Mangalyam)." },
+    "o5": { "name": "Ellupara", "desc": "A sesame offering for long life (Deergayus)." },
+    "o6": { "name": "Manjalpara", "desc": "A turmeric offering for marital harmony and protection (Dampathya Bhadratha)." },
+    "o7": { "name": "Sharkarapara", "desc": "A jaggery offering for health and long life (Ayurarogyam)." },
+    "o8": { "name": "Nanayapara", "desc": "A coin offering for wealth and abundance (Sampath Samruddhi)." },
+    "o9": { "name": "Ippara", "desc": "An offering for family unity and harmony (Kudumba Aikyam)." }
   },
   "misc": {
     "om": "ॐ  ✦  ॐ  ✦  ॐ"

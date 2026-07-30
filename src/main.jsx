@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.jsx'
 import './i18n'
 import './styles/theme.css'
+import './styles/app.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

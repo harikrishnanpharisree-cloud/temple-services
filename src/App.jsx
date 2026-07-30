@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
-import { SCHEDULE_KEYS, SCHEDULE_TIMES, NOTICES_KEYS, STAR_KEYS, OFFERINGS } from './data/config.js';
+import { SCHEDULE_KEYS, SCHEDULE_TIMES, NOTICES_KEYS, STAR_KEYS, OFFERINGS, isPoojaDay } from './data/config.js';
+import templeEntrance from './assets/temple-entrance.webp';
 
 // ── Supabase client ───────────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://YOUR_PROJECT_ID.supabase.co';
@@ -40,174 +41,125 @@ async function submitBooking(validEntries, grandTotal, t) {
   return booking.id;
 }
 
-// ── CSS ───────────────────────────────────────────────────────────────────────
-const Styles = () => (
-  <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Yatra+One&family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&display=swap');
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--color-cream);font-family:'Noto Serif',serif;color:var(--color-text)}
-    .ml{font-family:'Noto Serif Malayalam',serif}
-    ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--color-deep-cream)}::-webkit-scrollbar-thumb{background:var(--color-gold);border-radius:3px}
-
-    /* NAV */
-    .nav{position:sticky;top:0;z-index:100;background:var(--color-dark-maroon);border-bottom:3px solid var(--color-gold);box-shadow:0 4px 20px rgba(0,0,0,.5)}
-    .nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 1rem;gap:.5rem;flex-wrap:wrap}
-    .nav-logo{display:flex;align-items:center;gap:.7rem;padding:.7rem 0;text-decoration:none;flex-shrink:0}
-    .nav-logo-icon{font-size:2rem}
-    .nav-logo-name{color:var(--color-light-gold);font-family:'Yatra One',cursive;font-size:.9rem;line-height:1.2}
-    .nav-logo-sub{color:var(--color-gold);font-size:.65rem;opacity:.8}
-    .nav-right{display:flex;align-items:center;gap:.5rem}
-    
-    .theme-toggle{background:none;border:1px solid rgba(200,151,58,.3);color:var(--color-gold);border-radius:20px;padding:4px 10px;cursor:pointer;font-size:.8rem;transition:all .2s;display:flex;align-items:center;gap:5px;}
-    .theme-toggle:hover{background:rgba(255,255,255,.1)}
-
-    .lang-toggle{display:flex;background:rgba(255,255,255,.08);border-radius:20px;padding:3px;border:1px solid rgba(200,151,58,.3)}
-    .lang-btn{background:none;border:none;cursor:pointer;color:var(--color-gold);font-size:.75rem;font-weight:700;padding:.22rem .65rem;border-radius:16px;transition:all .2s;white-space:nowrap;line-height:1.4}
-    .lang-btn.active{background:var(--color-gold);color:var(--color-dark-maroon)}
-    .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:.5rem}
-    .hamburger span{display:block;width:24px;height:2px;background:var(--color-gold);border-radius:2px}
-    .nav-links{display:flex;gap:.2rem;list-style:none}
-    .nav-links button{background:none;border:none;cursor:pointer;color:var(--color-light-gold);font-size:.87rem;padding:.5rem .75rem;border-radius:4px;transition:background .2s,color .2s;white-space:nowrap}
-    .nav-links button:hover,.nav-links button.active{background:var(--color-gold);color:var(--color-dark-maroon);font-weight:700}
-    @media(max-width:768px){
-      .hamburger{display:flex}
-      .nav-links{display:none;flex-direction:column;gap:0;position:absolute;top:100%;left:0;right:0;background:var(--color-dark-maroon);border-bottom:3px solid var(--color-gold);padding:.5rem 0}
-      .nav-links.open{display:flex}
-      .nav-links button{width:100%;text-align:left;padding:.8rem 1.5rem;border-radius:0}
-    }
-
-    /* HERO */
-    .hero{background:linear-gradient(160deg,var(--color-dark-maroon) 0%,var(--color-maroon) 40%,var(--color-orange) 100%);position:relative;overflow:hidden;text-align:center;padding:4rem 1.5rem 5rem}
-    .hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 30px,rgba(200,151,58,.05) 30px,rgba(200,151,58,.05) 31px)}
-    .hero-diya{font-size:3.5rem;animation:flicker 2s ease-in-out infinite alternate}
-    @keyframes flicker{0%{transform:scale(1) rotate(-3deg);filter:brightness(1)}100%{transform:scale(1.08) rotate(3deg);filter:brightness(1.3)}}
-    .hero h1{font-family:'Yatra One',cursive;color:var(--color-light-gold);font-size:clamp(1.6rem,5vw,3rem);text-shadow:0 2px 20px rgba(0,0,0,.6);margin:.5rem 0 .3rem}
-    .hero-sub{color:var(--color-gold);font-style:italic;font-size:clamp(.85rem,2.5vw,1.1rem);opacity:.9}
-    .hero-divider{width:200px;height:3px;margin:1.5rem auto;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
-    .hero-desc{color:var(--color-deep-cream);max-width:600px;margin:0 auto;line-height:1.9;font-size:.95rem}
-
-    /* SECTION */
-    .section{max-width:1100px;margin:0 auto;padding:3rem 1.5rem}
-    .section-title{font-family:'Yatra One',cursive;color:var(--color-maroon);font-size:clamp(1.4rem,4vw,2rem);text-align:center;margin-bottom:.5rem}
-    .section-rule{width:120px;height:3px;margin:0 auto 2.5rem;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
-    .om{text-align:center;color:var(--color-gold);font-size:1.2rem;margin:2rem 0;opacity:.6}
-
-    /* CARDS */
-    .card-grid{display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(255px,1fr))}
-    .card{background:var(--color-card-bg);border:1px solid var(--color-deep-cream);border-top:4px solid var(--color-gold);border-radius:8px;padding:1.5rem;box-shadow:0 4px 16px rgba(0,0,0,.07);transition:transform .2s,box-shadow .2s}
-    .card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(107,15,26,.15)}
-    .card-icon{font-size:2rem;margin-bottom:.7rem}
-    .card h3{color:var(--color-maroon);font-size:1.1rem;margin-bottom:.5rem}
-    .card p,.card li{color:var(--color-muted);font-size:.9rem;line-height:1.8}
-    .card ul{padding-left:1rem}
-
-    /* SCHEDULE */
-    .schedule-table{width:100%;border-collapse:collapse;margin-top:1rem}
-    .schedule-table th{background:var(--color-maroon);color:var(--color-light-gold);font-family:'Yatra One',cursive;font-size:1rem;padding:.8rem 1rem;text-align:left}
-    .schedule-table td{padding:.75rem 1rem;border-bottom:1px solid var(--color-deep-cream);font-size:.9rem}
-    .schedule-table tr:nth-child(even) td{background:var(--color-deep-cream)}
-    .schedule-table tr:hover td{background:var(--color-devotee-bg)}
-    .time-badge{display:inline-block;background:var(--color-maroon);color:var(--color-light-gold);border-radius:20px;padding:.15rem .7rem;font-size:.8rem;font-weight:600}
-
-    /* NOTICE */
-    .notice-card{background:var(--color-notice-bg);border-left:5px solid var(--color-gold);border-radius:6px;padding:1.2rem 1.5rem;margin-bottom:1rem;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-    .notice-card h4{color:var(--color-maroon);margin-bottom:.4rem}
-    .notice-card p{color:var(--color-muted);font-size:.9rem;line-height:1.7}
-    .notice-date{font-size:.78rem;color:var(--color-gold);font-weight:600;margin-bottom:.4rem}
-    .notice-tag{display:inline-block;font-size:.72rem;padding:.1rem .6rem;border-radius:12px;margin-right:.4rem;margin-bottom:.5rem;font-weight:700}
-    .tag-festival{background:#FEF3C7;color:#92400E}
-    .tag-important{background:#FEE2E2;color:#991B1B}
-    .tag-general{background:#DCFCE7;color:#166534}
-
-    /* OFFERINGS PAGE */
-    .devotee-block{background:var(--color-devotee-bg);border:1.5px solid var(--color-deep-cream);border-radius:12px;padding:1.5rem;margin-bottom:1.2rem;transition:box-shadow .2s}
-    .devotee-block:focus-within{box-shadow:0 0 0 3px rgba(200,151,58,.2)}
-    .dv-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
-    .dv-title{color:var(--color-maroon);font-family:'Yatra One',cursive;font-size:1.05rem}
-    .btn-rm-dv{background:none;border:1px solid var(--color-border);color:var(--color-muted);border-radius:6px;cursor:pointer;padding:.22rem .65rem;font-size:.78rem;transition:all .2s}
-    .btn-rm-dv:hover{background:#FEE2E2;color:#991B1B;border-color:#FCA5A5}
-
-    /* mini offerings checkboxes */
-    .mini-grid{display:grid;gap:.5rem;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));margin-bottom:1rem}
-    .mini-item{display:flex;align-items:center;gap:.5rem;padding:.45rem .7rem;border:1.5px solid var(--color-deep-cream);border-radius:8px;cursor:pointer;transition:all .2s;background:var(--color-card-bg);font-size:.84rem;user-select:none}
-    .mini-item:hover{border-color:var(--color-gold)}
-    .mini-item.sel{border-color:var(--color-maroon);background:var(--color-devotee-bg)}
-    .mini-item input[type=checkbox]{accent-color:var(--color-maroon);width:14px;height:14px;flex-shrink:0;pointer-events:none}
-    .mini-price{margin-left:auto;font-weight:700;color:var(--color-maroon);font-size:.8rem;white-space:nowrap}
-
-    /* form */
-    .form-row{display:grid;gap:1rem;margin-bottom:.5rem}
-    @media(max-width:700px){.form-row{grid-template-columns:1fr!important}}
-    .fg{display:flex;flex-direction:column;gap:.35rem}
-    .fg label{font-size:.8rem;font-weight:600;color:var(--color-muted)}
-    .fg input,.fg select{border:1.5px solid var(--color-deep-cream);border-radius:6px;padding:.55rem .85rem;font-family:'Noto Serif',serif;font-size:.9rem;color:var(--color-text);background:var(--color-card-bg);transition:border-color .2s}
-    .fg input:focus,.fg select:focus{outline:none;border-color:var(--color-gold)}
-
-    .subtotal-hint{text-align:right;font-size:.82rem;color:var(--color-muted);margin-top:.4rem}
-
-    .btn-add-dv{width:100%;padding:.8rem;background:transparent;border:2px dashed var(--color-gold);color:var(--color-maroon);font-family:'Yatra One',cursive;font-size:1rem;border-radius:10px;cursor:pointer;margin-top:.5rem;transition:all .2s}
-    .btn-add-dv:hover{background:var(--color-devotee-bg)}
-
-    /* CART */
-    .cart-box{background:var(--color-dark-maroon);border-radius:12px;padding:1.5rem;margin-top:2rem}
-    .cart-box h3{color:var(--color-light-gold);font-family:'Yatra One',cursive;font-size:1.3rem;margin-bottom:1rem;border-bottom:1px solid rgba(200,151,58,.25);padding-bottom:.7rem}
-    .cart-devotee{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid rgba(200,151,58,.12)}
-    .cart-dv-name{color:var(--color-gold);font-weight:700;font-size:.93rem;margin-bottom:.4rem}
-    .cart-row{display:flex;justify-content:space-between;font-size:.87rem;color:var(--color-deep-cream);margin-bottom:.25rem}
-    .cart-grand{display:flex;justify-content:space-between;font-size:1.2rem;font-weight:700;color:var(--color-gold);border-top:1px solid rgba(200,151,58,.3);margin-top:.8rem;padding-top:.8rem}
-
-    .btn-pay{width:100%;margin-top:1.5rem;padding:1rem;background:linear-gradient(135deg,var(--color-gold),var(--color-orange));color:#fff;font-family:'Yatra One',cursive;font-size:1.2rem;border:none;border-radius:8px;cursor:pointer;box-shadow:0 4px 16px rgba(212,82,26,.4);transition:transform .2s,box-shadow .2s}
-    .btn-pay:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,82,26,.5)}
-    .btn-pay:disabled{opacity:.5;cursor:not-allowed;transform:none}
-
-    /* MODAL */
-    .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem}
-    .modal{background:var(--color-cream);border-radius:12px;padding:2.5rem;max-width:430px;width:100%;border-top:6px solid var(--color-gold);text-align:center}
-    .modal .mb{font-size:3.5rem;margin-bottom:1rem}
-    .modal h3{color:var(--color-maroon);font-family:'Yatra One',cursive;font-size:1.5rem;margin-bottom:.7rem}
-    .modal p{color:var(--color-muted);line-height:1.85;font-size:.9rem}
-    .modal button{margin-top:1.5rem;padding:.7rem 2rem;background:var(--color-maroon);color:var(--color-light-gold);border:none;border-radius:6px;cursor:pointer;font-family:'Yatra One',cursive;font-size:1rem}
-
-    .empty-state{text-align:center;color:var(--color-muted);padding:2rem;font-style:italic}
-
-    /* FOOTER */
-    .footer{background:var(--color-dark-maroon);color:var(--color-gold);border-top:3px solid var(--color-gold);text-align:center;padding:2rem 1.5rem;font-size:.85rem;line-height:2}
-    .footer p{color:var(--color-deep-cream);opacity:.7}
-
-    .timing-bar{background:var(--color-dark-maroon);padding:2.5rem 1.5rem;text-align:center}
-  `}</style>
-);
-
 // ── Helper ────────────────────────────────────────────────────────────────────
 let _uid = 1;
 const newDevotee = () => ({ id: _uid++, name:'', star:'', date:'', offeringIds:[] });
 
-// Today's date as min value for date picker
-const TODAY = new Date().toISOString().split('T')[0];
+// Local-timezone-safe "YYYY-MM-DD" formatter (avoids the UTC-shift bug of toISOString()).
+const pad2 = n => String(n).padStart(2, '0');
+const toISO = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
+// Today's date, used as the floor for the pooja-day calendar.
+const TODAY = toISO(new Date());
+
+// Builds a 7-wide grid of calendar cells (with leading/trailing days from
+// neighbouring months to fill whole weeks) for the given year/month.
+function buildMonthMatrix(year, month) {
+  const firstOfMonth = new Date(year, month, 1);
+  const startWeekday = firstOfMonth.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = [];
+  for (let i = startWeekday; i > 0; i--) cells.push({ date: new Date(year, month, 1 - i), inMonth: false });
+  for (let day = 1; day <= daysInMonth; day++) cells.push({ date: new Date(year, month, day), inMonth: true });
+  while (cells.length % 7 !== 0) {
+    const last = cells[cells.length - 1].date;
+    cells.push({ date: new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1), inMonth: false });
+  }
+  return cells;
+}
+
+// Custom calendar date-picker: a native <input type="date"> cannot disable
+// arbitrary weekdays/dates, so this restricts selection to real pooja days
+// (Tuesdays, Fridays, Punartham/Sankramam days, festival days, Mandalapooja).
+function PoojaDatePicker({ value, onChange, lang, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(() => {
+    const base = value ? new Date(`${value}T00:00:00`) : new Date();
+    return new Date(base.getFullYear(), base.getMonth(), 1);
+  });
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    function onDocClick(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  const locale = lang === 'ml' ? 'ml-IN' : 'en-IN';
+  const monthLabel = viewDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+  const weekdayLabels = Array.from({ length: 7 }, (_, i) =>
+    new Date(2023, 0, 1 + i).toLocaleDateString(locale, { weekday: 'narrow' }));
+  const cells = buildMonthMatrix(viewDate.getFullYear(), viewDate.getMonth());
+  const displayValue = value
+    ? new Date(`${value}T00:00:00`).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+
+  return (
+    <div className="pooja-datepicker" ref={wrapRef}>
+      <button type="button" className={`pdp-trigger${!value ? ' ph' : ''}`} onClick={() => setOpen(o => !o)}>
+        📅 {displayValue || placeholder}
+      </button>
+      {open && (
+        <div className="pdp-pop">
+          <div className="pdp-head">
+            <button type="button" onClick={() => setViewDate(v => new Date(v.getFullYear(), v.getMonth() - 1, 1))}>‹</button>
+            <span>{monthLabel}</span>
+            <button type="button" onClick={() => setViewDate(v => new Date(v.getFullYear(), v.getMonth() + 1, 1))}>›</button>
+          </div>
+          <div className="pdp-grid pdp-weekdays">
+            {weekdayLabels.map((w, i) => <span key={i}>{w}</span>)}
+          </div>
+          <div className="pdp-grid">
+            {cells.map((c, i) => {
+              const iso = toISO(c.date);
+              const disabled = !c.inMonth || iso < TODAY || !isPoojaDay(iso);
+              const cls = ['pdp-day'];
+              if (iso === value) cls.push('sel');
+              if (iso === TODAY) cls.push('today');
+              if (!c.inMonth) cls.push('out');
+              return (
+                <button type="button" key={i} disabled={disabled} className={cls.join(' ')}
+                  onClick={() => { onChange(iso); setOpen(false); }}>
+                  {c.date.getDate()}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── Pages ─────────────────────────────────────────────────────────────────────
-function HomePage({ lang }) {
+function HomePage({ lang, onNavigate }) {
   const { t } = useTranslation();
   const isMl = lang === 'ml';
   const cx = isMl ? 'ml' : '';
-  
+
   return (
     <>
       <div className="hero">
-        <div className="hero-diya">🪔</div>
-        <h1 className={cx}>{t('hero.title')}</h1>
-        <div className="hero-sub">{t('hero.sub')}</div>
-        <div className="hero-divider"/>
-        <p className={`hero-desc ${cx}`}>{t('hero.desc')}</p>
+        <div className="hero-inner">
+          <div>
+            <div className="hero-diya">🪔</div>
+            <h1 className={cx}>{t('hero.title')}</h1>
+            <div className="hero-sub">{t('hero.sub')}</div>
+            <div className="hero-divider"/>
+            <p className={`hero-desc ${cx}`}>{t('hero.desc')}</p>
+          </div>
+          <div className="hero-frame">
+            <img src={templeEntrance} alt={t('hero.photoCaption')}/>
+            <div className={`hero-frame-cap ${cx}`}>{t('hero.photoCaption')}</div>
+          </div>
+        </div>
       </div>
-      <div className="section">
-        <h2 className={`section-title ${cx}`}>{t('home.aboutTitle')}</h2>
-        <div className="section-rule"/>
-        <div className="card-grid">
-          <div className="card"><div className="card-icon">🛕</div><h3 className={cx}>{t('home.deity.h')}</h3><p className={cx}>{t('home.deity.p')}</p></div>
-          <div className="card"><div className="card-icon">📜</div><h3 className={cx}>{t('home.history.h')}</h3><p className={cx}>{t('home.history.p')}</p></div>
-          <div className="card"><div className="card-icon">🌺</div><h3 className={cx}>{t('home.festivals.h')}</h3><ul>{t('home.festivals.items', { returnObjects: true }).map((x,i)=><li className={cx} key={i}>{x}</li>)}</ul></div>
-          <div className="card"><div className="card-icon">📍</div><h3 className={cx}>{t('home.reach.h')}</h3><p className={cx}>{t('home.reach.p')}</p></div>
+      <div className="section intro-section">
+        <p className={`intro-text ${cx}`}>{t('home.intro')}</p>
+        <div style={{textAlign:'center'}}>
+          <button className={`btn-cta ${cx}`} onClick={()=>onNavigate('About')}>{t('home.aboutCta')}</button>
         </div>
       </div>
       <div className="timing-bar">
@@ -215,7 +167,163 @@ function HomePage({ lang }) {
         <p style={{color:'var(--color-deep-cream)',opacity:.8,fontSize:'.9rem'}} className={cx}>{t('hero.timing')}</p>
         <p style={{color:'var(--color-gold)',fontSize:'.8rem',marginTop:'.5rem',opacity:.7}} className={cx}>{t('hero.timingNote')}</p>
       </div>
+      <div className="section reach-section">
+        <h2 className={`section-title ${cx}`}>📍 {t('home.reach.h')}</h2>
+        <div className="section-rule"/>
+        <p className={`reach-text ${cx}`}>{t('home.reach.p')}</p>
+        <div className="map-embed">
+          <iframe
+            title={t('home.reach.mapTitle')}
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d125794.9747298453!2d76.35680768416793!3d9.842559498911607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b087716e8a334c9%3A0xee55366e7d41f554!2sPanackal%20Devi%20Kshethram!5e0!3m2!1sen!2sin!4v1785380702481!5m2!1sen!2sin"
+            width="100%" height="320" style={{border:0,display:'block'}} loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade" allowFullScreen
+          />
+        </div>
+      </div>
     </>
+  );
+}
+// <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d125794.9747298453!2d76.35680768416793!3d9.842559498911607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b087716e8a334c9%3A0xee55366e7d41f554!2sPanackal%20Devi%20Kshethram!5e0!3m2!1sen!2sin!4v1785380702481!5m2!1sen!2sin" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+
+const ABOUT_SECTIONS = ['deity', 'history', 'subDeities', 'festivals', 'rituals', 'darshan', 'committee'];
+const ABOUT_ICONS = { deity: '🛕', history: '📜', subDeities: '🕉️', festivals: '🌺', rituals: '🔥', darshan: '🚶', committee: '🏛️' };
+
+function AboutPage({ lang }) {
+  const { t } = useTranslation();
+  const isMl = lang === 'ml';
+  const cx = isMl ? 'ml' : '';
+
+  const subDeities = t('about.subDeities.items', { returnObjects: true });
+  const festivals  = t('about.festivals.items', { returnObjects: true });
+  const rituals    = t('about.rituals.items', { returnObjects: true });
+  const darshan    = t('about.darshan.steps', { returnObjects: true });
+  const committee  = t('about.committee.members', { returnObjects: true });
+
+  const [active, setActive] = useState(ABOUT_SECTIONS[0]);
+  const sectionRefs = useRef({});
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) setActive(entry.target.dataset.section);
+      });
+    }, { rootMargin: '-110px 0px -65% 0px', threshold: 0 });
+    ABOUT_SECTIONS.forEach(id => {
+      const el = sectionRefs.current[id];
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const jumpTo = (e, id) => {
+    e.preventDefault();
+    sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <div className="section about-page">
+      <h2 className={`section-title ${cx}`}>{t('about.title')}</h2>
+      <div className="section-rule"/>
+
+      <div className="about-layout">
+        <aside className="about-side-nav">
+          {ABOUT_SECTIONS.map(id => (
+            <a key={id} href={`#about-${id}`} className={active===id ? `active ${cx}` : cx}
+              onClick={(e)=>jumpTo(e, id)}>
+              {ABOUT_ICONS[id]} {t(`about.${id}.h`)}
+            </a>
+          ))}
+        </aside>
+
+        <div className="about-content">
+          <div className="about-block" id="about-deity" data-section="deity" ref={el=>sectionRefs.current.deity=el}>
+            <h3 className={`about-h ${cx}`}>🛕 {t('about.deity.h')}</h3>
+            <p className={cx}>{t('about.deity.p')}</p>
+            <div className="verse-card">
+              <div className="verse-row">
+                <span className="verse-label">{t('about.deity.verse.labels.devanagari')}</span>
+                <p className="verse-text-dev dev">{t('about.deity.verse.devanagari')}</p>
+              </div>
+              <div className="verse-row">
+                <span className="verse-label">{t('about.deity.verse.labels.malayalam')}</span>
+                <p className="verse-text-ml ml">{t('about.deity.verse.malayalam')}</p>
+              </div>
+              <div className="verse-row">
+                <span className="verse-label">{t('about.deity.verse.labels.transliteration')}</span>
+                <p className="verse-text-translit">{t('about.deity.verse.transliteration')}</p>
+              </div>
+              <div className="verse-row verse-meaning-row">
+                <span className="verse-label">{t('about.deity.verse.labels.meaning')}</span>
+                <p className={`verse-text-meaning ${cx}`}>{t('about.deity.verse.meaning')}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="about-block" id="about-history" data-section="history" ref={el=>sectionRefs.current.history=el}>
+            <h3 className={`about-h ${cx}`}>📜 {t('about.history.h')}</h3>
+            <p className={cx}>{t('about.history.p')}</p>
+          </div>
+
+          <div className="about-block" id="about-subDeities" data-section="subDeities" ref={el=>sectionRefs.current.subDeities=el}>
+            <h3 className={`about-h ${cx}`}>🕉️ {t('about.subDeities.h')}</h3>
+            <div className="card-grid">
+              {subDeities.map((d,i)=>(
+                <div className="card" key={i}>
+                  <div className="card-icon">{d.icon}</div>
+                  <h3 className={cx}>{d.name}</h3>
+                  <p className={cx}>{d.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="about-block" id="about-festivals" data-section="festivals" ref={el=>sectionRefs.current.festivals=el}>
+            <h3 className={`about-h ${cx}`}>🌺 {t('about.festivals.h')}</h3>
+            <div className="card-grid">
+              {festivals.map((f,i)=>(
+                <div className="card" key={i}>
+                  <div className="card-icon">{f.icon}</div>
+                  <h3 className={cx}>{f.name}</h3>
+                  <p className={cx}>{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="about-block" id="about-rituals" data-section="rituals" ref={el=>sectionRefs.current.rituals=el}>
+            <h3 className={`about-h ${cx}`}>🔥 {t('about.rituals.h')}</h3>
+            <div className="ritual-list">
+              {rituals.map((r,i)=>(
+                <div className="ritual-card" key={i}>
+                  <h4 className={cx}>{r.name}</h4>
+                  <p className={cx}>{r.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="about-block" id="about-darshan" data-section="darshan" ref={el=>sectionRefs.current.darshan=el}>
+            <h3 className={`about-h ${cx}`}>🚶 {t('about.darshan.h')}</h3>
+            <ol className={`darshan-steps ${cx}`}>
+              {darshan.map((s,i)=><li key={i}>{s}</li>)}
+            </ol>
+          </div>
+
+          <div className="about-block" id="about-committee" data-section="committee" ref={el=>sectionRefs.current.committee=el}>
+            <h3 className={`about-h ${cx}`}>🏛️ {t('about.committee.h')}</h3>
+            <p className={cx}>{t('about.committee.intro')}</p>
+            <div className="committee-table">
+              {committee.map((m,i)=>(
+                <div className="committee-row" key={i}>
+                  <span className={cx}>{m.name}</span>
+                  <span className={`committee-role ${cx}`}>{m.role}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -236,7 +344,6 @@ function SchedulePage({ lang }) {
               <tr key={i}>
                 <td style={{fontWeight:600,color:'var(--color-maroon)'}} className={cx}>{t(`scheduleData.${k}.name`)}</td>
                 <td><span className="time-badge">{SCHEDULE_TIMES[k]}</span></td>
-                <td className={cx}>{t(`scheduleData.${k}.desc`)}</td>
               </tr>
             ))}
           </tbody>
@@ -244,6 +351,7 @@ function SchedulePage({ lang }) {
       </div>
       <div className="om">{t('misc.om')}</div>
       <div className="card-grid">
+        <div className="card"><div className="card-icon">🗓️</div><h3 className={cx}>{t('schedule.openDays.h')}</h3><ul>{t('schedule.openDays.items', { returnObjects: true }).map((x,i)=><li className={cx} key={i}>{x}</li>)}</ul></div>
         <div className="card"><div className="card-icon">🕔</div><h3 className={cx}>{t('schedule.hours.h')}</h3><ul>{t('schedule.hours.items', { returnObjects: true }).map((x,i)=><li className={cx} key={i}>{x}</li>)}</ul></div>
         <div className="card"><div className="card-icon">📋</div><h3 className={cx}>{t('schedule.dress.h')}</h3><ul>{t('schedule.dress.items', { returnObjects: true }).map((x,i)=><li className={cx} key={i}>{x}</li>)}</ul></div>
       </div>
@@ -325,8 +433,11 @@ function OfferingsPage({ lang }) {
     <div className="section">
       <h2 className={`section-title ${cx}`}>{t('offerings.title')}</h2>
       <div className="section-rule"/>
-      <p style={{textAlign:'center',color:'var(--color-muted)',marginBottom:'2rem',fontStyle:'italic',fontSize:'.95rem'}} className={cx}>{t('offerings.subtitle')}</p>
+      <p style={{textAlign:'center',color:'var(--color-muted)',marginBottom:'.6rem',fontStyle:'italic',fontSize:'.95rem'}} className={cx}>{t('offerings.subtitle')}</p>
+      <p className={`date-note ${cx}`}>📅 {t('offerings.dateNote')}</p>
 
+      <div className="offerings-layout">
+      <div className="offerings-main">
       {cart.map((dev,idx)=>{
         const sub = dev.offeringIds.reduce((s,oid)=>s+(OFFERINGS.find(o=>o.id===oid)?.price||0),0);
         return (
@@ -372,8 +483,8 @@ function OfferingsPage({ lang }) {
               </div>
               <div className="fg">
                 <label className={cx}>📅 {t('offerings.dateLbl')}</label>
-                <input type="date" min={TODAY} value={dev.date||''}
-                  onChange={e=>updDev(dev.id,'date',e.target.value)}/>
+                <PoojaDatePicker value={dev.date} lang={lang} placeholder={t('offerings.datePh')}
+                  onChange={val=>updDev(dev.id,'date',val)}/>
               </div>
             </div>
             {dev.offeringIds.length>0 &&
@@ -383,8 +494,10 @@ function OfferingsPage({ lang }) {
       })}
 
       <button className={`btn-add-dv ${cx}`} onClick={addDev}>{t('offerings.addDevotee')}</button>
+      </div>
 
       {/* Cart */}
+      <aside className="offerings-aside">
       {validEntries.length>0 ? (
         <div className="cart-box">
           <h3 className={cx}>{t('offerings.cartTitle')}</h3>
@@ -432,8 +545,10 @@ function OfferingsPage({ lang }) {
           )}
         </div>
       ) : (
-        <p className={`empty-state ${cx}`} style={{marginTop:'1.5rem'}}>{t('offerings.emptyPrompt')}</p>
+        <p className={`empty-state ${cx}`}>{t('offerings.emptyPrompt')}</p>
       )}
+      </aside>
+      </div>
 
       {showModal && (
         <div className="modal-ov" onClick={()=>setShowModal(false)}>
@@ -455,7 +570,7 @@ function OfferingsPage({ lang }) {
 }
 
 // ── App ───────────────────────────────────────────────────────────────────────
-const PAGE_KEYS = ["Home","Schedule","Notices","Offerings"];
+const PAGE_KEYS = ["Home","About","Schedule","Notices","Offerings"];
 
 export default function App() {
   const { t, i18n } = useTranslation();
@@ -481,7 +596,7 @@ export default function App() {
   };
 
   const NAV_LABELS = {
-    Home: t('nav.home'), Schedule: t('nav.schedule'),
+    Home: t('nav.home'), About: t('nav.about'), Schedule: t('nav.schedule'),
     Notices: t('nav.notices'), Offerings: t('nav.offerings'),
   };
 
@@ -489,14 +604,13 @@ export default function App() {
 
   return (
     <>
-      <Styles/>
       <nav className="nav">
         <div className="nav-inner">
           <a className="nav-logo" href="#" onClick={e=>{e.preventDefault();go("Home");}}>
             <span className="nav-logo-icon">🪔</span>
             <div>
               <div className={`nav-logo-name ${cx}`}>{t('templeNameShort')}</div>
-              <div className="nav-logo-sub">ॐ ഭദ്രകാളി ദേവി നമഃ</div>
+              <div className="nav-logo-sub">അമ്മേ നാരായണ ഭദ്രേ നാരായണ</div>
             </div>
           </a>
 
@@ -526,7 +640,8 @@ export default function App() {
         </div>
       </nav>
 
-      {page==="Home"      && <HomePage      lang={lang}/>}
+      {page==="Home"      && <HomePage      lang={lang} onNavigate={go}/>}
+      {page==="About"     && <AboutPage     lang={lang}/>}
       {page==="Schedule"  && <SchedulePage  lang={lang}/>}
       {page==="Notices"   && <NoticePage    lang={lang}/>}
       {page==="Offerings" && <OfferingsPage lang={lang}/>}
