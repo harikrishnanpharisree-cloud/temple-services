@@ -35,23 +35,60 @@ export const STAR_KEYS = [
 // day of the 41-day Mandalapooja — per the festival Devaswom's notice.
 export const TEMPLE_OPEN_WEEKDAYS = [2, 5]; // Date.getDay(): 0=Sun ... 2=Tue, 5=Fri
 
-// Explicit special pooja dates for 2026 (Punartham, Sankramam, festival &
-// observance days) extracted from the Devaswom's annual calendar.
-export const SPECIAL_POOJA_DATES_2026 = [
-  "2026-01-03", "2026-01-04", "2026-01-31",
-  "2026-02-13", "2026-02-15", "2026-02-28",
-  "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-07", "2026-03-08", "2026-03-09",
-  "2026-03-15", "2026-03-27",
-  "2026-04-14", "2026-04-15", "2026-04-23",
-  "2026-05-15", "2026-05-20",
-  "2026-06-15", "2026-06-17",
-  "2026-07-14", "2026-07-16",
-  "2026-08-11", "2026-08-12", "2026-08-17", "2026-08-26",
-  "2026-09-04", "2026-09-07", "2026-09-14", "2026-09-17",
-  "2026-10-04", "2026-10-17", "2026-10-18", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-31",
-  "2026-11-02", "2026-11-08", "2026-11-16", "2026-11-28",
-  "2026-12-24", "2026-12-25"
-];
+// Why each special date is a pooja day, extracted from the Devaswom's annual
+// calendar — one or more occasion descriptors per date. A descriptor is either
+// a plain string key (looked up as t(`schedule.occasions.${key}`)) or, for
+// Sankramam days, {key:"sankramam", month} so one translated template string
+// ("{{month}} Sankramam") covers every month instead of a key per month.
+export const SPECIAL_POOJA_OCCASIONS_2026 = {
+  "2026-01-03": ["thiruvathira"],
+  "2026-01-04": ["punartham"],
+  "2026-01-31": ["prathishta", "punartham"],
+  "2026-02-13": [{ key: "sankramam", month: "kumbham" }],
+  "2026-02-15": ["sivarathri"],
+  "2026-02-28": ["punartham"],
+  "2026-03-03": ["utsavam1"],
+  "2026-03-04": ["utsavam2"],
+  "2026-03-05": ["utsavam3"],
+  "2026-03-06": ["utsavam4"],
+  "2026-03-07": ["utsavam5"],
+  "2026-03-08": ["utsavam6"],
+  "2026-03-09": ["utsavam7"],
+  "2026-03-15": ["ezhampooja"],
+  "2026-03-27": ["punartham"],
+  "2026-04-14": [{ key: "sankramam", month: "medam" }],
+  "2026-04-15": ["vishu"],
+  "2026-04-23": ["pathamudayam", "punartham"],
+  "2026-05-15": [{ key: "sankramam", month: "edavam" }],
+  "2026-05-20": ["punartham"],
+  "2026-06-15": [{ key: "sankramam", month: "mithunam" }],
+  "2026-06-17": ["punartham"],
+  "2026-07-14": ["punartham"],
+  "2026-07-16": [{ key: "sankramam", month: "karkidakam" }],
+  "2026-08-11": ["punartham"],
+  "2026-08-12": ["karkidakaVavu"],
+  "2026-08-17": [{ key: "sankramam", month: "chingam" }],
+  "2026-08-26": ["thiruvonam"],
+  "2026-09-04": ["krishnaJayanthi"],
+  "2026-09-07": ["punartham"],
+  "2026-09-14": ["vinayakaChaturthi"],
+  "2026-09-17": [{ key: "sankramam", month: "kanni" }],
+  "2026-10-04": ["punartham"],
+  "2026-10-17": [{ key: "sankramam", month: "thulam" }],
+  "2026-10-18": ["navaratri1"],
+  "2026-10-19": ["navaratri2"],
+  "2026-10-20": ["navaratri3"],
+  "2026-10-21": ["navaratri4"],
+  "2026-10-31": ["punartham"],
+  "2026-11-02": ["ayilyam"],
+  "2026-11-08": ["deepavali"],
+  "2026-11-16": [{ key: "sankramam", month: "vrischikam" }],
+  "2026-11-28": ["punartham"],
+  "2026-12-24": ["thiruvathira"],
+  "2026-12-25": ["punartham"]
+};
+
+export const SPECIAL_POOJA_DATES_2026 = Object.keys(SPECIAL_POOJA_OCCASIONS_2026);
 
 // 41-day Mandalapooja vratham — nada opens daily throughout this period.
 export const MANDALAPOOJA_RANGE_2026 = { start: "2026-11-17", end: "2026-12-27" };
@@ -75,6 +112,10 @@ export const ALL_SPECIAL_POOJA_DATES = Array.from(new Set([
   ...expandRange(MANDALAPOOJA_RANGE_2026.start, MANDALAPOOJA_RANGE_2026.end)
 ]));
 
+function isInMandalapooja2026(dateStr) {
+  return dateStr >= MANDALAPOOJA_RANGE_2026.start && dateStr <= MANDALAPOOJA_RANGE_2026.end;
+}
+
 // Returns true if the given "YYYY-MM-DD" date string is a day the temple
 // holds regular pooja (weekly Tue/Fri, or one of the special dates above).
 export function isPoojaDay(dateStr) {
@@ -83,6 +124,17 @@ export function isPoojaDay(dateStr) {
   if (Number.isNaN(d.getTime())) return false;
   if (TEMPLE_OPEN_WEEKDAYS.includes(d.getDay())) return true;
   return ALL_SPECIAL_POOJA_DATES.includes(dateStr);
+}
+
+// Returns the list of occasion descriptors explaining *why* dateStr is a
+// pooja day — for the Schedule page's "why is this day open" detail panel.
+export function getDayOccasions(dateStr) {
+  if (SPECIAL_POOJA_OCCASIONS_2026[dateStr]) return SPECIAL_POOJA_OCCASIONS_2026[dateStr];
+  if (isInMandalapooja2026(dateStr)) return ["mandalapooja"];
+  const weekday = new Date(`${dateStr}T00:00:00`).getDay();
+  if (weekday === 2) return ["weeklyTue"];
+  if (weekday === 5) return ["weeklyFri"];
+  return [];
 }
 
 export const OFFERINGS = [

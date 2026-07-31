@@ -1,5 +1,9 @@
 :root {
-  --container-max: 1320px;
+  /* Fluid instead of a flat 1320px: on anything narrower than ~1740px this
+     resolves to 96vw (near full-bleed, minimal side margins); above that it
+     caps at 1670px so text/tables don't stretch unreadably wide on ultrawide
+     monitors. min() recalculates on resize like any other CSS value. */
+  --container-max: min(96vw, 1670px);
 
   /* ── Fonts ──────────────────────────────────────────────────────────────
      Single source of truth for every font-family in the app. English/base
@@ -18,13 +22,13 @@
   --font-latin: 'Noto Serif', serif;
 
 
-  --color-maroon: #386041;
-  --color-dark-maroon: #24402B;
-  --color-gold: #C69550;
-  --color-light-gold: #E4C58B;
-  --color-cream: #F8F6F0;
-  --color-deep-cream: #ECE8DF;
-  --color-orange: #73BBAA;
+  --color-primary: #386041;
+  --color-primary-dark: #24402B;
+  --color-secondary: #C69550;
+  --color-secondary-light: #E4C58B;
+  --color-background: #F8F6F0;
+  --color-background-alt: #ECE8DF;
+  --color-accent: #73BBAA;
   --color-text: #223026;
   --color-muted: #5E7365;
   --color-card-bg: #FFFFFF;
@@ -33,23 +37,23 @@
   --color-border: #C8D6CD;
   --color-success: #387A52;
   --color-error: #B55A52;
-  /* --color-cream / --color-deep-cream are adaptive *page-background* shades —
-     they intentionally invert to near-black in dark mode. --color-cream-text
-     is a separate, never-flipped constant for light cream text sitting on
-     components that stay dark-maroon in both themes (hero, footer, cart-box,
+  /* --color-background / --color-background-alt are adaptive *page-background* shades —
+     they intentionally invert to near-black in dark mode. --color-text-on-dark
+     is a separate, never-flipped constant for light text sitting on components
+     that stay a dark primary shade in every theme (hero, footer, cart-box,
      timing-bar, verse-card) — using the background token there instead would
      turn the text almost invisible once dark mode flips it to near-black. */
-  --color-cream-text: #F5E9C8;
+  --color-text-on-dark: #F5E9C8;
 }
 
 [data-theme="dark"] {
-  --color-maroon: #B54F5B;
-  --color-dark-maroon: #250508;
-  --color-gold: #E0AE4C;
-  --color-light-gold: #FBE6B1;
-  --color-cream: #120A04;
-  --color-deep-cream: #281708;
-  --color-orange: #E8652D;
+  --color-primary: #B54F5B;
+  --color-primary-dark: #250508;
+  --color-secondary: #E0AE4C;
+  --color-secondary-light: #FBE6B1;
+  --color-background: #120A04;
+  --color-background-alt: #281708;
+  --color-accent: #E8652D;
   --color-text: #FDF6E3;
   --color-muted: #C0A88F;
   --color-card-bg: #1B1006;
@@ -62,13 +66,13 @@
 
 /* "Classic" theme — Maroon / Gold / Saffron / Ivory palette. */
 [data-theme="classic"] {
-  --color-maroon: #7B1E2B;
-  --color-dark-maroon: #50131C;
-  --color-gold: #D4AF37;
-  --color-light-gold: #E3CB7D;
-  --color-cream: #FFF8E7;
-  --color-deep-cream: #F2E6C9;
-  --color-orange: #FF9933;
+  --color-primary: #7B1E2B;
+  --color-primary-dark: #50131C;
+  --color-secondary: #D4AF37;
+  --color-secondary-light: #E3CB7D;
+  --color-background: #FFF8E7;
+  --color-background-alt: #F2E6C9;
+  --color-accent: #FF9933;
   --color-text: #2F2F2F;
   --color-muted: #6B5E4E;
   --color-card-bg: #FFFFFF;
@@ -77,4 +81,22 @@
   --color-border: #E8DDC3;
   --color-success: #2E7D32;
   --color-error: #C62828;
+}
+
+[data-theme="serene"] {
+  --color-primary: #1D3557;
+  --color-primary-dark: #12233B;
+  --color-secondary: #C69550;
+  --color-secondary-light: #E4C58B;
+  --color-background: #F4EEE2;
+  --color-background-alt: #DED7CB;
+  --color-accent: #8ECAE6;
+  --color-text: #1C2836;
+  --color-muted: #5C6E82;
+  --color-card-bg: #FFFFFF;
+  --color-notice-bg: #F0F7FB;
+  --color-devotee-bg: #EBF4F8;
+  --color-border: #CBD8E2;
+  --color-success: #3B7A77;
+  --color-error: #B55A52;
 }

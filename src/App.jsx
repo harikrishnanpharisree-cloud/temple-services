@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
-import { SCHEDULE_KEYS, SCHEDULE_TIMES, NOTICES_KEYS, STAR_KEYS, OFFERINGS, isPoojaDay } from './data/config.js';
+import { SCHEDULE_KEYS, SCHEDULE_TIMES, NOTICES_KEYS, STAR_KEYS, OFFERINGS, isPoojaDay, getDayOccasions } from './data/config.js';
 import templeEntrance from './assets/temple-entrance.webp';
 
 // ── Supabase client ───────────────────────────────────────────────────────────
@@ -68,9 +68,49 @@ function buildMonthMatrix(year, month) {
   return cells;
 }
 
-// Custom calendar date-picker: a native <input type="date"> cannot disable
-// arbitrary weekdays/dates, so this restricts selection to real pooja days
-// (Tuesdays, Fridays, Punartham/Sankramam days, festival days, Mandalapooja).
+// Shared calendar grid — month header + weekday row + day buttons, restricted
+// to real pooja days (Tuesdays, Fridays, Punartham/Sankramam, festival days,
+// Mandalapooja). Used both inside the popover date-picker (below) and inline,
+// always-visible, on the Schedule page.
+function PoojaCalendarGrid({ viewDate, onPrevMonth, onNextMonth, selectedValue, onSelectDay, lang }) {
+  const locale = lang === 'ml' ? 'ml-IN' : 'en-IN';
+  const monthLabel = viewDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+  const weekdayLabels = Array.from({ length: 7 }, (_, i) =>
+    new Date(2023, 0, 1 + i).toLocaleDateString(locale, { weekday: 'narrow' }));
+  const cells = buildMonthMatrix(viewDate.getFullYear(), viewDate.getMonth());
+
+  return (
+    <>
+      <div className="pdp-head">
+        <button type="button" onClick={onPrevMonth} aria-label="Previous month">‹</button>
+        <span>{monthLabel}</span>
+        <button type="button" onClick={onNextMonth} aria-label="Next month">›</button>
+      </div>
+      <div className="pdp-grid pdp-weekdays">
+        {weekdayLabels.map((w, i) => <span key={i}>{w}</span>)}
+      </div>
+      <div className="pdp-grid">
+        {cells.map((c, i) => {
+          const iso = toISO(c.date);
+          const disabled = !c.inMonth || iso < TODAY || !isPoojaDay(iso);
+          const cls = ['pdp-day'];
+          if (iso === selectedValue) cls.push('sel');
+          if (iso === TODAY) cls.push('today');
+          if (!c.inMonth) cls.push('out');
+          return (
+            <button type="button" key={i} disabled={disabled} className={cls.join(' ')}
+              onClick={() => onSelectDay(iso)}>
+              {c.date.getDate()}
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+// Popover wrapper around PoojaCalendarGrid — a native <input type="date">
+// can't disable arbitrary dates, hence the custom trigger + popup calendar.
 function PoojaDatePicker({ value, onChange, lang, placeholder }) {
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState(() => {
@@ -87,12 +127,7 @@ function PoojaDatePicker({ value, onChange, lang, placeholder }) {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  const isMl = lang === 'ml';
-  const locale = isMl ? 'ml-IN' : 'en-IN';
-  const monthLabel = viewDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
-  const weekdayLabels = Array.from({ length: 7 }, (_, i) =>
-    new Date(2023, 0, 1 + i).toLocaleDateString(locale, { weekday: 'narrow' }));
-  const cells = buildMonthMatrix(viewDate.getFullYear(), viewDate.getMonth());
+  const locale = lang === 'ml' ? 'ml-IN' : 'en-IN';
   const displayValue = value
     ? new Date(`${value}T00:00:00`).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
     : '';
@@ -104,30 +139,14 @@ function PoojaDatePicker({ value, onChange, lang, placeholder }) {
       </button>
       {open && (
         <div className="pdp-pop">
-          <div className="pdp-head">
-            <button type="button" onClick={() => setViewDate(v => new Date(v.getFullYear(), v.getMonth() - 1, 1))}>‹</button>
-            <span>{monthLabel}</span>
-            <button type="button" onClick={() => setViewDate(v => new Date(v.getFullYear(), v.getMonth() + 1, 1))}>›</button>
-          </div>
-          <div className="pdp-grid pdp-weekdays">
-            {weekdayLabels.map((w, i) => <span key={i}>{w}</span>)}
-          </div>
-          <div className="pdp-grid">
-            {cells.map((c, i) => {
-              const iso = toISO(c.date);
-              const disabled = !c.inMonth || iso < TODAY || !isPoojaDay(iso);
-              const cls = ['pdp-day'];
-              if (iso === value) cls.push('sel');
-              if (iso === TODAY) cls.push('today');
-              if (!c.inMonth) cls.push('out');
-              return (
-                <button type="button" key={i} disabled={disabled} className={cls.join(' ')}
-                  onClick={() => { onChange(iso); setOpen(false); }}>
-                  {c.date.getDate()}
-                </button>
-              );
-            })}
-          </div>
+          <PoojaCalendarGrid
+            viewDate={viewDate}
+            onPrevMonth={() => setViewDate(v => new Date(v.getFullYear(), v.getMonth() - 1, 1))}
+            onNextMonth={() => setViewDate(v => new Date(v.getFullYear(), v.getMonth() + 1, 1))}
+            selectedValue={value}
+            onSelectDay={(iso) => { onChange(iso); setOpen(false); }}
+            lang={lang}
+          />
         </div>
       )}
     </div>
@@ -323,31 +342,88 @@ function AboutPage() {
   );
 }
 
-function SchedulePage() {
+function SchedulePage({ lang, onBookDay }) {
   const { t } = useTranslation();
+  const [calView, setCalView] = useState(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
+  const [selectedDay, setSelectedDay] = useState(null);
+
+  const renderOccasion = (occ) => {
+    if (typeof occ === 'string') return t(`schedule.occasions.${occ}`);
+    return t(`schedule.occasions.${occ.key}`, { month: t(`schedule.malayalamMonths.${occ.month}`) });
+  };
+
+  const selectedDayLabel = selectedDay
+    ? new Date(`${selectedDay}T00:00:00`).toLocaleDateString(lang === 'ml' ? 'ml-IN' : 'en-IN',
+        { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+  const occasions = selectedDay ? getDayOccasions(selectedDay) : [];
 
   return (
     <div className="section">
       <h2 className="section-title">{t('schedule.title')}</h2>
       <div className="section-rule"/>
-      <div className="table-scroll">
-        <table className="schedule-table">
-          <thead><tr>{t('schedule.cols', { returnObjects: true }).map((c,i)=><th key={i}>{c}</th>)}</tr></thead>
-          <tbody>
-            {SCHEDULE_KEYS.map((k,i)=>(
-              <tr key={i}>
-                <td className="schedule-name">{t(`scheduleData.${k}.name`)}</td>
-                <td><span className="time-badge">{SCHEDULE_TIMES[k]}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="om">{t('misc.om')}</div>
-      <div className="card-grid">
-        <div className="card"><div className="card-icon">🗓️</div><h3>{t('schedule.openDays.h')}</h3><ul>{t('schedule.openDays.items', { returnObjects: true }).map((x,i)=><li key={i}>{x}</li>)}</ul></div>
-        <div className="card"><div className="card-icon">🕔</div><h3>{t('schedule.hours.h')}</h3><ul>{t('schedule.hours.items', { returnObjects: true }).map((x,i)=><li key={i}>{x}</li>)}</ul></div>
-        <div className="card"><div className="card-icon">📋</div><h3>{t('schedule.dress.h')}</h3><ul>{t('schedule.dress.items', { returnObjects: true }).map((x,i)=><li key={i}>{x}</li>)}</ul></div>
+
+      <div className="schedule-layout">
+        <div className="schedule-main">
+          <div className="table-scroll">
+            <table className="schedule-table">
+              <thead><tr>{t('schedule.cols', { returnObjects: true }).map((c,i)=><th key={i}>{c}</th>)}</tr></thead>
+              <tbody>
+                {SCHEDULE_KEYS.map((k,i)=>(
+                  <tr key={i}>
+                    <td className="schedule-name">{t(`scheduleData.${k}.name`)}</td>
+                    <td><span className="time-badge">{SCHEDULE_TIMES[k]}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="om">{t('misc.om')}</div>
+
+          <div className="cal-block">
+            <h3 className="about-h">🗓️ {t('schedule.calendar.h')}</h3>
+            <p className="offerings-subtitle">{t('schedule.calendar.hint')}</p>
+
+            <div className="cal-and-details">
+              <div className="inline-cal">
+                <PoojaCalendarGrid
+                  viewDate={calView}
+                  onPrevMonth={() => setCalView(v => new Date(v.getFullYear(), v.getMonth() - 1, 1))}
+                  onNextMonth={() => setCalView(v => new Date(v.getFullYear(), v.getMonth() + 1, 1))}
+                  selectedValue={selectedDay}
+                  onSelectDay={setSelectedDay}
+                  lang={lang}
+                />
+              </div>
+
+              <div className="day-details">
+                {selectedDay ? (
+                  <>
+                    <div className="day-details-date">📅 {selectedDayLabel}</div>
+                    <div className="day-details-why">{t('schedule.dayDetails.why')}</div>
+                    <ul className="day-details-list">
+                      {occasions.map((occ, i) => <li key={i}>{renderOccasion(occ)}</li>)}
+                    </ul>
+                    <button className="btn-cta" onClick={() => onBookDay(selectedDay)}>
+                      {t('schedule.dayDetails.bookCta')}
+                    </button>
+                  </>
+                ) : (
+                  <p className="day-details-prompt">{t('schedule.dayDetails.prompt')}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside className="schedule-sidebar">
+          <div className="card"><div className="card-icon">🗓️</div><h3>{t('schedule.openDays.h')}</h3><ul>{t('schedule.openDays.items', { returnObjects: true }).map((x,i)=><li key={i}>{x}</li>)}</ul></div>
+          <div className="card"><div className="card-icon">🕔</div><h3>{t('schedule.hours.h')}</h3><ul>{t('schedule.hours.items', { returnObjects: true }).map((x,i)=><li key={i}>{x}</li>)}</ul></div>
+          <div className="card"><div className="card-icon">📋</div><h3>{t('schedule.dress.h')}</h3><ul>{t('schedule.dress.items', { returnObjects: true }).map((x,i)=><li key={i}>{x}</li>)}</ul></div>
+        </aside>
       </div>
     </div>
   );
@@ -373,10 +449,10 @@ function NoticePage() {
   );
 }
 
-function OfferingsPage({ lang }) {
+function OfferingsPage({ lang, presetDate }) {
   const { t } = useTranslation();
   const isMl = lang === 'ml'; 
-  const [cart, setCart] = useState([newDevotee()]);
+  const [cart, setCart] = useState(() => [{ ...newDevotee(), date: presetDate || '' }]);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -569,6 +645,9 @@ export default function App() {
   const [page, setPage] = useState("Home");
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+  // Set when a day is clicked on the Schedule page's calendar; OfferingsPage
+  // consumes it once (as the first devotee's date) via a lazy initializer.
+  const [bookingDate, setBookingDate] = useState(null);
 
   useEffect(() => {
     i18n.changeLanguage(lang);
@@ -578,8 +657,8 @@ export default function App() {
   // computed during render, not via an effect reaching into the document —
   // so descendants get the swapped font/color variables through normal CSS
   // inheritance with no extra tick of delay (and no flash on first paint).
-  const THEMES = ["light", "dark", "classic"];
-  const THEME_ICONS = { light: '☀️', dark: '🌙', classic: '🪔' };
+  const THEMES = ["light", "dark", "classic", "serene"];
+  const THEME_ICONS = { light: '☀️', dark: '🌙', classic: '🪔', serene: '🌊' };
   const changeTheme = (next) => {
     setTheme(next);
     localStorage.setItem('theme', next);
@@ -590,7 +669,8 @@ export default function App() {
     Notices: t('nav.notices'), Offerings: t('nav.offerings'),
   };
 
-  const go = p => { setPage(p); setMenuOpen(false); window.scrollTo({top:0,behavior:'smooth'}); };
+  const go = p => { setPage(p); setMenuOpen(false); setBookingDate(null); window.scrollTo({top:0,behavior:'smooth'}); };
+  const bookDay = iso => { setBookingDate(iso); setPage('Offerings'); setMenuOpen(false); window.scrollTo({top:0,behavior:'smooth'}); };
 
   return (
     <div className={`app-shell${lang==='ml' ? ' ml' : ''}`} data-theme={theme}>
@@ -624,9 +704,9 @@ export default function App() {
 
       {page==="Home"      && <HomePage      onNavigate={go}/>}
       {page==="About"     && <AboutPage/>}
-      {page==="Schedule"  && <SchedulePage/>}
+      {page==="Schedule"  && <SchedulePage lang={lang} onBookDay={bookDay}/>}
       {page==="Notices"   && <NoticePage/>}
-      {page==="Offerings" && <OfferingsPage lang={lang}/>}
+      {page==="Offerings" && <OfferingsPage lang={lang} presetDate={bookingDate}/>}
 
       <footer className="footer">
         <p className="footer-brand">
