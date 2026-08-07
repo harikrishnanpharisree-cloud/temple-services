@@ -137,6 +137,57 @@ export function getDayOccasions(dateStr) {
   return [];
 }
 
+// ── Malayalam (Kollavarsham) calendar — month + day, for display only ───────
+// Malayalam months are bounded by Sankranti (solar sidereal transition) days.
+// 9 of these 12 anchors are the temple's own printed 2026 Sankramam dates
+// (already used above for occasions); the other 3 — Dhanu x2 and Makaram,
+// Meenam — aren't in the source booklet, so they're arithmetic estimates
+// (~30–31 days after the previous anchor, matching the spacing the temple's
+// own 9 dates already show). Cross-checked against the one ground-truth data
+// point the booklet gives directly ("2026 മാർച്ച് 03 = 1201 കുംഭം 19"): Kumbha
+// Sankramam Feb 13 + 18 days = Mar 3 = Kumbham day 19 ✓. Good for 2026 only —
+// Sankranti dates drift by about a day every 70-ish years, so this table
+// would need updating (not just re-dating) for other years.
+const MALAYALAM_MONTH_ANCHORS_2026 = [
+  { date: "2025-12-16", month: "dhanu" },     // estimated
+  { date: "2026-01-14", month: "makaram" },   // estimated
+  { date: "2026-02-13", month: "kumbham" },   // from temple calendar, verified above
+  { date: "2026-03-14", month: "meenam" },    // estimated
+  { date: "2026-04-14", month: "medam" },     // from temple calendar
+  { date: "2026-05-15", month: "edavam" },    // from temple calendar
+  { date: "2026-06-15", month: "mithunam" },  // from temple calendar
+  { date: "2026-07-16", month: "karkidakam" },// from temple calendar
+  { date: "2026-08-17", month: "chingam" },   // from temple calendar — also the Malayalam Era new-year rollover
+  { date: "2026-09-17", month: "kanni" },     // from temple calendar
+  { date: "2026-10-17", month: "thulam" },    // from temple calendar
+  { date: "2026-11-16", month: "vrischikam" },// from temple calendar
+  { date: "2026-12-16", month: "dhanu" }      // estimated
+];
+
+// Malayalam Era (ME) year rolls over at Chingam 1, not Jan 1.
+const ME_YEAR_BEFORE_CHINGAM_2026 = 1201;
+const CHINGAM_START_2026 = "2026-08-17";
+
+function daysBetween(startISO, endISO) {
+  const a = new Date(`${startISO}T00:00:00`);
+  const b = new Date(`${endISO}T00:00:00`);
+  return Math.round((b - a) / 86400000);
+}
+
+// Returns { monthKey, day, meYear } for a 2026 date, or null outside that
+// range. day is 1-based, counted inclusively from the anchor's Sankranti date.
+export function getMalayalamDate(dateStr) {
+  if (!dateStr || dateStr < "2025-12-16" || dateStr > "2026-12-31") return null;
+  let anchor = null;
+  for (const a of MALAYALAM_MONTH_ANCHORS_2026) {
+    if (a.date <= dateStr) anchor = a; else break;
+  }
+  if (!anchor) return null;
+  const day = daysBetween(anchor.date, dateStr) + 1;
+  const meYear = dateStr < CHINGAM_START_2026 ? ME_YEAR_BEFORE_CHINGAM_2026 : ME_YEAR_BEFORE_CHINGAM_2026 + 1;
+  return { monthKey: anchor.month, day, meYear };
+}
+
 export const OFFERINGS = [
   { id: 1, icon: "🌾", price: 70, key: "o1" },
   { id: 2, icon: "🍚", price: 70, key: "o2" },

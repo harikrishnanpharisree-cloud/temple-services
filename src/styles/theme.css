@@ -20,6 +20,10 @@
      --font-latin never changes — use it for content that must stay Latin script even
      while the rest of the page is in Malayalam (e.g. an English transliteration row). */
   --font-latin: 'Noto Serif', serif;
+  --font-h1: 'Crimson Text', serif;              /* hero <h1> title only — active/current language */
+  --font-h1-ml: 'Keraleeyam', sans-serif;         /* hero <h1> title only — Malayalam */
+  --font-title: 'PT Serif', serif;                /* card/notice titles that otherwise sit on the body font — active/current language */
+  --font-title-ml: 'Anek Malayalam', sans-serif;  /* card/notice titles — Malayalam */
 
 
   --color-primary: #386041;

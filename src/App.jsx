@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
-import { SCHEDULE_KEYS, SCHEDULE_TIMES, NOTICES_KEYS, STAR_KEYS, OFFERINGS, isPoojaDay, getDayOccasions } from './data/config.js';
+import { SCHEDULE_KEYS, SCHEDULE_TIMES, NOTICES_KEYS, STAR_KEYS, OFFERINGS, isPoojaDay, getDayOccasions, getMalayalamDate } from './data/config.js';
 import templeEntrance from './assets/temple-entrance.webp';
 
 // ── Supabase client ───────────────────────────────────────────────────────────
@@ -42,8 +42,7 @@ async function submitBooking(validEntries, grandTotal, t) {
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────
-let _uid = 1;
-const newDevotee = () => ({ id: _uid++, name:'', star:'', date:'', offeringIds:[] });
+let _cartUid = 1;
 
 // Local-timezone-safe "YYYY-MM-DD" formatter (avoids the UTC-shift bug of toISOString()).
 const pad2 = n => String(n).padStart(2, '0');
@@ -72,7 +71,7 @@ function buildMonthMatrix(year, month) {
 // to real pooja days (Tuesdays, Fridays, Punartham/Sankramam, festival days,
 // Mandalapooja). Used both inside the popover date-picker (below) and inline,
 // always-visible, on the Schedule page.
-function PoojaCalendarGrid({ viewDate, onPrevMonth, onNextMonth, selectedValue, onSelectDay, lang }) {
+function PoojaCalendarGrid({ viewDate, onPrevMonth, onNextMonth, selectedValue, onSelectDay, lang, markedDates }) {
   const locale = lang === 'ml' ? 'ml-IN' : 'en-IN';
   const monthLabel = viewDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
   const weekdayLabels = Array.from({ length: 7 }, (_, i) =>
@@ -97,6 +96,7 @@ function PoojaCalendarGrid({ viewDate, onPrevMonth, onNextMonth, selectedValue, 
           if (iso === selectedValue) cls.push('sel');
           if (iso === TODAY) cls.push('today');
           if (!c.inMonth) cls.push('out');
+          if (markedDates && markedDates.has(iso)) cls.push('has-items');
           return (
             <button type="button" key={i} disabled={disabled} className={cls.join(' ')}
               onClick={() => onSelectDay(iso)}>
@@ -109,47 +109,53 @@ function PoojaCalendarGrid({ viewDate, onPrevMonth, onNextMonth, selectedValue, 
   );
 }
 
-// Popover wrapper around PoojaCalendarGrid — a native <input type="date">
-// can't disable arbitrary dates, hence the custom trigger + popup calendar.
-function PoojaDatePicker({ value, onChange, lang, placeholder }) {
-  const [open, setOpen] = useState(false);
-  const [viewDate, setViewDate] = useState(() => {
-    const base = value ? new Date(`${value}T00:00:00`) : new Date();
-    return new Date(base.getFullYear(), base.getMonth(), 1);
-  });
-  const wrapRef = useRef(null);
+// Shared day-details pane — shown beside the calendar once a day is picked.
+// Special days (Punartham, Sankramam, festivals…) get a badge + the reason;
+// plain weekly Tue/Fri days just show the date, since the reason is implied.
+// onBookDay is only passed on the Schedule page, which needs a CTA into
+// Offerings; the Offerings page itself omits it since picking a day there
+// unlocks the booking form directly below.
+function DayDetailsPanel({ selectedDay, lang, onBookDay }) {
+  const { t } = useTranslation();
 
-  useEffect(() => {
-    function onDocClick(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, []);
+  if (!selectedDay) {
+    return <p className="day-details-prompt">{t('schedule.dayDetails.prompt')}</p>;
+  }
 
   const locale = lang === 'ml' ? 'ml-IN' : 'en-IN';
-  const displayValue = value
-    ? new Date(`${value}T00:00:00`).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
-    : '';
+  const dayLabel = new Date(`${selectedDay}T00:00:00`).toLocaleDateString(locale,
+    { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  const md = getMalayalamDate(selectedDay);
+  const malayalamLabel = md
+    ? t('schedule.dayDetails.malayalamDate', { month: t(`schedule.malayalamMonths.${md.monthKey}`), day: md.day, year: md.meYear })
+    : null;
+
+  const occasions = getDayOccasions(selectedDay);
+  const isSpecial = !(occasions.length === 1 && (occasions[0] === 'weeklyTue' || occasions[0] === 'weeklyFri'));
+
+  const renderOccasion = (occ) => typeof occ === 'string'
+    ? t(`schedule.occasions.${occ}`)
+    : t(`schedule.occasions.${occ.key}`, { month: t(`schedule.malayalamMonths.${occ.month}`) });
 
   return (
-    <div className="pooja-datepicker" ref={wrapRef}>
-      <button type="button" className={`pdp-trigger${!value ? ' ph' : ''}`} onClick={() => setOpen(o => !o)}>
-        📅 {displayValue || placeholder}
-      </button>
-      {open && (
-        <div className="pdp-pop">
-          <PoojaCalendarGrid
-            viewDate={viewDate}
-            onPrevMonth={() => setViewDate(v => new Date(v.getFullYear(), v.getMonth() - 1, 1))}
-            onNextMonth={() => setViewDate(v => new Date(v.getFullYear(), v.getMonth() + 1, 1))}
-            selectedValue={value}
-            onSelectDay={(iso) => { onChange(iso); setOpen(false); }}
-            lang={lang}
-          />
-        </div>
+    <>
+      <div className="day-details-date">📅 {dayLabel}</div>
+      {malayalamLabel && <div className="day-details-malayalam">{malayalamLabel}</div>}
+      {isSpecial && (
+        <>
+          <span className="day-details-badge">{t('schedule.dayDetails.specialBadge')}</span>
+          <ul className="day-details-list">
+            {occasions.map((occ, i) => <li key={i}>{renderOccasion(occ)}</li>)}
+          </ul>
+        </>
       )}
-    </div>
+      {onBookDay && (
+        <button className="btn-cta" onClick={() => onBookDay(selectedDay)}>
+          {t('schedule.dayDetails.bookCta')}
+        </button>
+      )}
+    </>
   );
 }
 
@@ -350,17 +356,6 @@ function SchedulePage({ lang, onBookDay }) {
   });
   const [selectedDay, setSelectedDay] = useState(null);
 
-  const renderOccasion = (occ) => {
-    if (typeof occ === 'string') return t(`schedule.occasions.${occ}`);
-    return t(`schedule.occasions.${occ.key}`, { month: t(`schedule.malayalamMonths.${occ.month}`) });
-  };
-
-  const selectedDayLabel = selectedDay
-    ? new Date(`${selectedDay}T00:00:00`).toLocaleDateString(lang === 'ml' ? 'ml-IN' : 'en-IN',
-        { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-    : '';
-  const occasions = selectedDay ? getDayOccasions(selectedDay) : [];
-
   return (
     <div className="section">
       <h2 className="section-title">{t('schedule.title')}</h2>
@@ -400,20 +395,7 @@ function SchedulePage({ lang, onBookDay }) {
               </div>
 
               <div className="day-details">
-                {selectedDay ? (
-                  <>
-                    <div className="day-details-date">📅 {selectedDayLabel}</div>
-                    <div className="day-details-why">{t('schedule.dayDetails.why')}</div>
-                    <ul className="day-details-list">
-                      {occasions.map((occ, i) => <li key={i}>{renderOccasion(occ)}</li>)}
-                    </ul>
-                    <button className="btn-cta" onClick={() => onBookDay(selectedDay)}>
-                      {t('schedule.dayDetails.bookCta')}
-                    </button>
-                  </>
-                ) : (
-                  <p className="day-details-prompt">{t('schedule.dayDetails.prompt')}</p>
-                )}
+                <DayDetailsPanel selectedDay={selectedDay} lang={lang} onBookDay={onBookDay}/>
               </div>
             </div>
           </div>
@@ -451,42 +433,61 @@ function NoticePage() {
 
 function OfferingsPage({ lang, presetDate }) {
   const { t } = useTranslation();
-  const isMl = lang === 'ml'; 
-  const [cart, setCart] = useState(() => [{ ...newDevotee(), date: presetDate || '' }]);
+  const isMl = lang === 'ml';
+  const [calView, setCalView] = useState(() => {
+    const base = presetDate ? new Date(`${presetDate}T00:00:00`) : new Date();
+    return new Date(base.getFullYear(), base.getMonth(), 1);
+  });
+  const [selectedDate, setSelectedDate] = useState(presetDate || '');
+  const [form, setForm] = useState({ name: '', star: '', offeringIds: [] });
+  const [justAdded, setJustAdded] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [bookingId, setBookingId] = useState(null);
 
-  const updDev = (id, field, val) =>
-    setCart(c => c.map(d => d.id===id ? {...d, [field]:val} : d));
-
-  const toggleOff = (devId, ofId) =>
-    setCart(c => c.map(d => {
-      if (d.id!==devId) return d;
-      const ids = d.offeringIds.includes(ofId)
-        ? d.offeringIds.filter(x=>x!==ofId)
-        : [...d.offeringIds, ofId];
-      return {...d, offeringIds:ids};
+  const toggleOffering = (ofId) =>
+    setForm(f => ({
+      ...f,
+      offeringIds: f.offeringIds.includes(ofId)
+        ? f.offeringIds.filter(x => x !== ofId)
+        : [...f.offeringIds, ofId]
     }));
 
-  const addDev = () => setCart(c=>[...c, newDevotee()]);
-  const rmDev  = (id) => setCart(c=>c.filter(d=>d.id!==id));
+  const formSubtotal = form.offeringIds.reduce((s, oid) => s + (OFFERINGS.find(o => o.id === oid)?.price || 0), 0);
+  const canAdd = !!(selectedDate && form.name.trim() && form.star && form.offeringIds.length > 0);
 
-  const validEntries = cart.filter(d=>d.name.trim()&&d.star&&d.offeringIds.length>0);
-  const grandTotal   = validEntries.reduce((s,d)=>
-    s+d.offeringIds.reduce((ss,oid)=>ss+(OFFERINGS.find(o=>o.id===oid)?.price||0),0),0);
+  const addToCart = () => {
+    if (!canAdd) return;
+    setCartItems(c => [...c, {
+      id: _cartUid++, date: selectedDate,
+      name: form.name.trim(), star: form.star, offeringIds: [...form.offeringIds]
+    }]);
+    setForm({ name: '', star: '', offeringIds: [] });
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1100);
+  };
+
+  const removeItem = (id) => setCartItems(c => c.filter(i => i.id !== id));
+
+  const markedDates = new Set(cartItems.map(i => i.date));
+  const byDate = {};
+  cartItems.forEach(item => { (byDate[item.date] ||= []).push(item); });
+  const sortedDates = Object.keys(byDate).sort();
+  const grandTotal = cartItems.reduce((s, i) =>
+    s + i.offeringIds.reduce((ss, oid) => ss + (OFFERINGS.find(o => o.id === oid)?.price || 0), 0), 0);
 
   const handleClose = () => {
     setShowModal(false); setBookingId(null);
-    setSubmitError(''); setCart([newDevotee()]);
+    setSubmitError(''); setCartItems([]); setSelectedDate('');
   };
 
   const handlePay = async () => {
     setSubmitting(true);
     setSubmitError('');
     try {
-      const id = await submitBooking(validEntries, grandTotal, t);
+      const id = await submitBooking(cartItems, grandTotal, t);
       setBookingId(id);
       setShowModal(true);
     } catch (err) {
@@ -501,30 +502,61 @@ function OfferingsPage({ lang, presetDate }) {
       <h2 className="section-title">{t('offerings.title')}</h2>
       <div className="section-rule"/>
       <p className="offerings-subtitle">{t('offerings.subtitle')}</p>
-      <p className="date-note">📅 {t('offerings.dateNote')}</p>
 
       <div className="offerings-layout">
-      <div className="offerings-main">
-      {cart.map((dev,idx)=>{
-        const sub = dev.offeringIds.reduce((s,oid)=>s+(OFFERINGS.find(o=>o.id===oid)?.price||0),0);
-        return (
-          <div className="devotee-block" key={dev.id}>
-            <div className="dv-header">
-              <span className="dv-title">
-                {t('offerings.devoteeTitle')} {idx+1}
-                {dev.name && <span className="dv-name-tag">— {dev.name}</span>}
+      <div className="cal-stack">
+        <h3 className="about-h">🗓️ {t('offerings.step1')}</h3>
+        <div className="cal-details-row">
+          <div className="inline-cal">
+            <PoojaCalendarGrid
+              viewDate={calView}
+              onPrevMonth={() => setCalView(v => new Date(v.getFullYear(), v.getMonth() - 1, 1))}
+              onNextMonth={() => setCalView(v => new Date(v.getFullYear(), v.getMonth() + 1, 1))}
+              selectedValue={selectedDate}
+              onSelectDay={setSelectedDate}
+              lang={lang}
+              markedDates={markedDates}
+            />
+          </div>
+          <div className="day-details">
+            <DayDetailsPanel selectedDay={selectedDate} lang={lang}/>
+          </div>
+        </div>
+      </div>
+
+      <div className="devotee-block">
+        {!selectedDate ? (
+          <p className="locked-note">🔒 {t('offerings.lockedNote')}</p>
+        ) : (
+          <>
+            <div className="selected-date-chip">
+              <span className="icon">📅</span>
+              <span className="txt">
+                {t('offerings.dateChipPrefix')} <b>{new Date(`${selectedDate}T00:00:00`).toLocaleDateString(isMl ? 'ml-IN' : 'en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</b>
               </span>
-              {cart.length>1 &&
-                <button className="btn-rm-dv" onClick={()=>rmDev(dev.id)}>{t('offerings.removeDevotee')}</button>}
             </div>
 
-            {/* Mini offering checkboxes */}
+            <div className="form-row form-row-2">
+              <div className="fg">
+                <label>{t('offerings.nameLbl')}</label>
+                <input placeholder={t('offerings.namePh')} value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}/>
+              </div>
+              <div className="fg">
+                <label>{t('offerings.starLbl')}</label>
+                <select value={form.star} onChange={e => setForm(f => ({ ...f, star: e.target.value }))}>
+                  <option value="">{t('offerings.starPh')}</option>
+                  {STAR_KEYS.map(s => <option key={s} value={s}>{t(`starsData.${s}`)}</option>)}
+                </select>
+              </div>
+            </div>
+
             <div className="mini-grid">
-              {OFFERINGS.map(o=>{
-                const selected = dev.offeringIds.includes(o.id);
+              {OFFERINGS.map(o => {
+                const selected = form.offeringIds.includes(o.id);
                 return (
-                  <div key={o.id} className={`mini-item${selected?' sel':''}`}
-                    onClick={()=>toggleOff(dev.id,o.id)}>
+                  <div key={o.id} className={`mini-item${selected ? ' sel' : ''}`}
+                    onClick={() => toggleOffering(o.id)}>
                     <input type="checkbox" readOnly checked={selected}/>
                     <span>{o.icon}</span>
                     <span>{t(`offeringsData.${o.key}.name`)}</span>
@@ -533,69 +565,49 @@ function OfferingsPage({ lang, presetDate }) {
                 );
               })}
             </div>
+            {formSubtotal > 0 &&
+              <p className="subtotal-hint">{t('offerings.subtotal')}: <strong className="amount-highlight">₹{formSubtotal.toLocaleString('en-IN')}</strong></p>}
 
-            {/* Name + Star + Date */}
-            <div className="form-row form-row-3">
-              <div className="fg">
-                <label>{t('offerings.nameLbl')}</label>
-                <input placeholder={t('offerings.namePh')} value={dev.name}
-                  onChange={e=>updDev(dev.id,'name',e.target.value)}/>
-              </div>
-              <div className="fg">
-                <label>{t('offerings.starLbl')}</label>
-                <select value={dev.star} onChange={e=>updDev(dev.id,'star',e.target.value)}>
-                  <option value="">{t('offerings.starPh')}</option>
-                  {STAR_KEYS.map(s=><option key={s} value={s}>{t(`starsData.${s}`)}</option>)}
-                </select>
-              </div>
-              <div className="fg">
-                <label>📅 {t('offerings.dateLbl')}</label>
-                <PoojaDatePicker value={dev.date} lang={lang} placeholder={t('offerings.datePh')}
-                  onChange={val=>updDev(dev.id,'date',val)}/>
-              </div>
-            </div>
-            {dev.offeringIds.length>0 &&
-              <p className="subtotal-hint">{t('offerings.subtotal')}: <strong className="amount-highlight">₹{sub.toLocaleString('en-IN')}</strong></p>}
-          </div>
-        );
-      })}
-
-      <button className="btn-add-dv" onClick={addDev}>{t('offerings.addDevotee')}</button>
+            <button type="button" className={`btn-add-cart${justAdded ? ' added' : ''}`}
+              disabled={!canAdd} onClick={addToCart}>
+              {justAdded ? t('offerings.added') : t('offerings.addToCart')}
+            </button>
+          </>
+        )}
       </div>
 
-      {/* Cart */}
       <aside className="offerings-aside">
-      {validEntries.length>0 ? (
+      {cartItems.length > 0 ? (
         <div className="cart-box">
           <h3>{t('offerings.cartTitle')}</h3>
-          {validEntries.map(d=>{
-            const items = OFFERINGS.filter(o=>d.offeringIds.includes(o.id));
-            const sub   = items.reduce((s,o)=>s+o.price,0);
-            return (
-              <div className="cart-devotee" key={d.id}>
-                <div className="cart-dv-name">
-                  👤 {d.name}
-                  <span className="cart-star-label">
-                    ({t('offerings.starLabel')}: <span>{t(`starsData.${d.star}`)}</span>)
-                  </span>
-                </div>
-                {items.map(o=>(
-                  <div className="cart-row" key={o.id}>
-                    <span>{o.icon} <span>{t(`offeringsData.${o.key}.name`)}</span></span>
-                    <span>₹{o.price.toLocaleString('en-IN')}</span>
-                  </div>
-                ))}
-                {d.date && (
-                  <div className="cart-date">
-                    📅 {new Date(d.date+'T00:00:00').toLocaleDateString(isMl?'ml-IN':'en-IN',{day:'numeric',month:'long',year:'numeric'})}
-                  </div>
-                )}
-                <div className="cart-subtotal">
-                  {t('offerings.subtotal')}: ₹{sub.toLocaleString('en-IN')}
-                </div>
+          {sortedDates.map(date => (
+            <div className="cart-date-group" key={date}>
+              <div className="cart-date-header">
+                📅 {new Date(`${date}T00:00:00`).toLocaleDateString(isMl ? 'ml-IN' : 'en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
               </div>
-            );
-          })}
+              {byDate[date].map(item => {
+                const items = OFFERINGS.filter(o => item.offeringIds.includes(o.id));
+                const sub = items.reduce((s, o) => s + o.price, 0);
+                return (
+                  <div className="cart-item" key={item.id}>
+                    <button type="button" className="cart-remove" title={t('offerings.removeItem')}
+                      onClick={() => removeItem(item.id)}>✕</button>
+                    <div className="cart-dv-name">
+                      👤 {item.name}
+                      <span className="cart-star-label">({t('offerings.starLabel')}: <span>{t(`starsData.${item.star}`)}</span>)</span>
+                    </div>
+                    {items.map(o => (
+                      <div className="cart-row" key={o.id}>
+                        <span>{o.icon} <span>{t(`offeringsData.${o.key}.name`)}</span></span>
+                        <span>₹{o.price.toLocaleString('en-IN')}</span>
+                      </div>
+                    ))}
+                    <div className="cart-subtotal">{t('offerings.subtotal')}: ₹{sub.toLocaleString('en-IN')}</div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
           <div className="cart-grand">
             <span>{t('offerings.grandTotal')}</span>
             <span>₹{grandTotal.toLocaleString('en-IN')}</span>
@@ -622,7 +634,7 @@ function OfferingsPage({ lang, presetDate }) {
           <div className="modal" onClick={e=>e.stopPropagation()}>
             <div className="mb">🙏</div>
             <h3>{t('offerings.modalTitle')}</h3>
-            <p>{t('offerings.modalBody', { total: grandTotal.toLocaleString('en-IN'), names: validEntries.map(d=>d.name).join(', ') })}</p>
+            <p>{t('offerings.modalBody', { total: grandTotal.toLocaleString('en-IN'), names: cartItems.map(d=>d.name).join(', ') })}</p>
             {bookingId && (
               <p className="booking-id">
                 {t('offerings.bookingId')}: {bookingId}

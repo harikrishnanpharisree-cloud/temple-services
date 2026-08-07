@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Yatra+One&family=Gayathri:wght@100;400;700&family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Serif+Devanagari:wght@400;600;700&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Yatra+One&family=Gayathri:wght@100;400;700&family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Serif+Devanagari:wght@400;600;700&family=Noto+Serif:ital,wght@0,400;0,600;0,700;1,400&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Anek+Malayalam:wght@400;600;700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url('https://smc.org.in/fonts/keraleeyam.css');
 
 *,
 *::before,
@@ -43,7 +44,9 @@ button {
 .ml {
   font-family: var(--font-body-ml);
   --font-body: var(--font-body-ml);
-  --font-display: var(--font-display-ml)
+  --font-display: var(--font-display-ml);
+  --font-h1: var(--font-h1-ml);
+  --font-title: var(--font-title-ml)
 }
 
 .dev {
@@ -298,7 +301,7 @@ button {
 }
 
 .hero h1 {
-  font-family: var(--font-display);
+  font-family: var(--font-h1);
   color: var(--color-secondary-light);
   font-size: clamp(1.6rem, 3.4vw, 3rem);
   text-shadow: 0 2px 20px rgba(0, 0, 0, .6);
@@ -440,6 +443,7 @@ button {
 
 .card h3 {
   color: var(--color-primary);
+  font-family: var(--font-title);
   font-size: 1.1rem;
   margin-bottom: .5rem
 }
@@ -572,16 +576,28 @@ button {
   color: var(--color-primary);
   font-family: var(--font-display);
   font-size: 1.15rem;
-  margin-bottom: .6rem
+  margin-bottom: .2rem
 }
 
-.day-details-why {
+.day-details-malayalam {
   color: var(--color-muted);
-  font-size: .78rem;
+  font-size: .85rem;
+  font-style: italic;
+  margin-bottom: .8rem
+}
+
+.day-details-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: var(--color-secondary);
+  color: var(--color-primary-dark);
+  font-size: .7rem;
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
-  margin-bottom: .5rem
+  padding: .2rem .6rem;
+  border-radius: 12px;
+  margin-bottom: .8rem
 }
 
 .day-details-list {
@@ -613,6 +629,7 @@ button {
 
 .notice-card h4 {
   color: var(--color-primary);
+  font-family: var(--font-title);
   margin-bottom: .4rem
 }
 
@@ -954,47 +971,7 @@ button {
   text-align: right
 }
 
-/* POOJA DATE PICKER */
-.pooja-datepicker {
-  position: relative
-}
-
-.pdp-trigger {
-  width: 100%;
-  text-align: left;
-  border: 1.5px solid var(--color-background-alt);
-  border-radius: 6px;
-  padding: .55rem .85rem;
-  font-size: .87rem;
-  color: var(--color-text);
-  background: var(--color-card-bg);
-  cursor: pointer;
-  transition: border-color .2s
-}
-
-.pdp-trigger:hover,
-.pdp-trigger:focus {
-  outline: none;
-  border-color: var(--color-secondary)
-}
-
-.pdp-trigger.ph {
-  color: var(--color-muted)
-}
-
-.pdp-pop {
-  position: absolute;
-  z-index: 50;
-  top: calc(100% + 6px);
-  left: 0;
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-background-alt);
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
-  padding: .9rem;
-  width: 270px
-}
-
+/* POOJA CALENDAR GRID (shared by Schedule + Offerings inline calendars) */
 .pdp-head {
   display: flex;
   align-items: center;
@@ -1036,6 +1013,7 @@ button {
 }
 
 .pdp-day {
+  position: relative;
   background: none;
   border: none;
   border-radius: 6px;
@@ -1069,44 +1047,134 @@ button {
   font-weight: 700
 }
 
-.date-note {
-  text-align: center;
-  color: var(--color-muted);
-  font-size: .82rem;
-  margin-bottom: 1.5rem
+/* Marks a day that already has at least one item added to the cart. */
+.pdp-day.has-items::after {
+  content: '🛒';
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  transform: translateX(-50%) scale(.6);
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .3))
 }
 
-/* OFFERINGS PAGE — main column + sticky order-summary sidebar */
+/* OFFERINGS PAGE — one grid, driven by grid-template-areas across three
+   tiers, so there's never an in-between state where columns have partially
+   collapsed and content overflows into a neighboring track:
+     ≥1445px  : 3 columns — [calendar+day-details] | devotee | cart
+     960–1445 : 2 columns — [calendar+day-details] | [devotee / cart stacked]
+     <960px   : 1 column  — calendar+day-details, devotee, cart, all stacked
+   The "cal" area is always one unit (.cal-stack, calendar + day-details
+   together) — see below for how *its* internal layout adapts separately. */
 .offerings-layout {
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 2.5rem;
-  align-items: start
+  grid-template-columns: 380px 1fr 360px;
+  grid-template-areas: "cal devotee cart";
+  gap: 1.75rem;
+  align-items: start;
+  margin-top: 2.5rem
+}
+
+@media(max-width:1445px) {
+  .offerings-layout {
+    grid-template-columns: 380px 1fr;
+    grid-template-areas:
+      "cal devotee"
+      "cal cart"
+  }
 }
 
 @media(max-width:960px) {
   .offerings-layout {
-    grid-template-columns: 1fr
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "cal"
+      "devotee"
+      "cart"
+  }
+}
+
+.cal-stack {
+  grid-area: cal;
+  min-width: 0
+}
+
+/* Only the calendar + day-details pairing toggles row/column — the "Choose
+   a Pooja Day" heading above it stays in normal block flow so it never gets
+   pulled into that row and squeezed into its own narrow column. */
+.cal-details-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  min-width: 0
+}
+
+.cal-stack .day-details {
+  min-height: 0
+}
+
+/* Below 960px the "cal" area is the full single-column width, which can be
+   much wider than the calendar needs (it stays capped at 380px below) —
+   between ~700 and 960px there's enough spare width to put day-details
+   beside the calendar instead of leaving it empty; narrower than that
+   there isn't enough room for both, so it drops back to a plain stack. */
+@media(min-width:700px) and (max-width:960px) {
+  .cal-details-row {
+    flex-direction: row;
+    align-items: stretch
+  }
+
+  .cal-stack .inline-cal {
+    flex: 0 0 380px
+  }
+
+  .cal-stack .day-details {
+    flex: 1 1 auto;
+    min-width: 0
+  }
+}
+
+@media(max-width:960px) {
+  .cal-stack .inline-cal {
+    max-width: 380px
+  }
+}
+
+/* Below the row-mode range there's no day-details to share the leftover
+   width with, so center the capped-width calendar instead of leaving it
+   flush left. align-self alone shrinks it to its intrinsic content width
+   (which comes out under 380px) because it stops the flex item from
+   stretching to fill the cross axis — pairing it with width:100% keeps it
+   claiming the full available width up to the max-width cap, so it only
+   shrinks below 380px once the viewport itself does. */
+@media(max-width:699px) {
+  .cal-stack .inline-cal {
+    align-self: center;
+    width: 100%
   }
 }
 
 .offerings-aside {
+  grid-area: cart;
   position: sticky;
-  top: 90px
+  top: 90px;
+  min-width: 0
 }
 
-@media(max-width:960px) {
+@media(max-width:1445px) {
   .offerings-aside {
     position: static
   }
 }
 
 .devotee-block {
+  grid-area: devotee;
   background: var(--color-devotee-bg);
   border: 1.5px solid var(--color-background-alt);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.2rem;
+  min-width: 0;
   transition: box-shadow .2s
 }
 
@@ -1114,34 +1182,73 @@ button {
   box-shadow: 0 0 0 3px rgba(200, 151, 58, .2)
 }
 
-.dv-header {
+.locked-note {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem
-}
-
-.dv-title {
-  color: var(--color-primary);
-  font-family: var(--font-display);
-  font-size: 1.05rem
-}
-
-.btn-rm-dv {
-  background: none;
-  border: 1px solid var(--color-border);
+  gap: .6rem;
   color: var(--color-muted);
-  border-radius: 6px;
-  cursor: pointer;
-  padding: .22rem .65rem;
-  font-size: .78rem;
-  transition: all .2s
+  font-size: .9rem;
+  font-style: italic
 }
 
-.btn-rm-dv:hover {
-  background: #FEE2E2;
-  color: #991B1B;
-  border-color: #FCA5A5
+.selected-date-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .7rem;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 30px;
+  padding: .5rem 1.2rem .5rem .7rem;
+  margin-bottom: 1.3rem
+}
+
+.selected-date-chip .icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .9rem;
+  flex-shrink: 0
+}
+
+.selected-date-chip .txt {
+  font-size: .9rem;
+  color: var(--color-text)
+}
+
+.selected-date-chip .txt b {
+  color: var(--color-primary)
+}
+
+.btn-add-cart {
+  width: 100%;
+  padding: .9rem;
+  background: var(--color-primary);
+  border: none;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: .8rem;
+  transition: background .2s, transform .15s
+}
+
+.btn-add-cart:hover:not(:disabled) {
+  transform: translateY(-1px)
+}
+
+.btn-add-cart:disabled {
+  opacity: .45;
+  cursor: not-allowed
+}
+
+.btn-add-cart.added {
+  background: var(--color-success)
 }
 
 /* mini offerings checkboxes */
@@ -1240,24 +1347,6 @@ button {
   margin-top: .4rem
 }
 
-.btn-add-dv {
-  width: 100%;
-  padding: .8rem;
-  background: transparent;
-  border: 2px dashed var(--color-secondary);
-  color: var(--color-primary);
-  font-family: var(--font-display);
-  font-size: 1rem;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-top: .5rem;
-  transition: all .2s
-}
-
-.btn-add-dv:hover {
-  background: var(--color-devotee-bg)
-}
-
 /* CART */
 .cart-box {
   background: var(--color-primary-dark);
@@ -1280,10 +1369,56 @@ button {
   padding-bottom: .7rem
 }
 
-.cart-devotee {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(200, 151, 58, .12)
+.cart-date-group {
+  margin-bottom: 1.2rem
+}
+
+.cart-date-group:last-of-type {
+  margin-bottom: 0
+}
+
+.cart-date-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: var(--color-secondary);
+  font-size: .85rem;
+  font-weight: 700;
+  margin-bottom: .7rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid rgba(200, 151, 58, .25)
+}
+
+.cart-item {
+  margin-bottom: .9rem;
+  padding-bottom: .9rem;
+  padding-right: 1.4rem;
+  border-bottom: 1px solid rgba(200, 151, 58, .12);
+  position: relative
+}
+
+.cart-date-group .cart-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none
+}
+
+.cart-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  color: var(--color-text-on-dark);
+  opacity: .55;
+  cursor: pointer;
+  font-size: .95rem;
+  line-height: 1;
+  padding: .1rem
+}
+
+.cart-remove:hover {
+  opacity: 1
 }
 
 .cart-dv-name {
@@ -1492,15 +1627,8 @@ button {
   font-size: .95rem
 }
 
-.dv-name-tag {
-  color: var(--color-muted);
-  font-size: .82rem;
-  font-weight: 400;
-  margin-left: .5rem
-}
-
-.form-row-3 {
-  grid-template-columns: 1fr 1fr 1fr
+.form-row-2 {
+  grid-template-columns: 1fr 1fr
 }
 
 .amount-highlight {
@@ -1512,13 +1640,6 @@ button {
   font-weight: 400;
   color: var(--color-text-on-dark);
   margin-left: .5rem
-}
-
-.cart-date {
-  font-size: .78rem;
-  color: var(--color-secondary-light);
-  margin-top: .3rem;
-  margin-bottom: .1rem
 }
 
 .cart-subtotal {
