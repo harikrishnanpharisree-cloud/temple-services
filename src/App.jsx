@@ -6,16 +6,25 @@ import { SCHEDULE_KEYS, SCHEDULE_TIMES, NOTICES_KEYS, STAR_KEYS, OFFERINGS, isPo
 import templeEntrance from './assets/temple-entrance.webp';
 
 // ── Supabase client ───────────────────────────────────────────────────────────
-const SUPABASE_URL  = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_ANON = 'YOUR_ANON_PUBLIC_KEY';
+// createClient() throws synchronously (crashing the whole app, not just
+// whatever calls Supabase) if the URL is falsy — these placeholder fallbacks
+// keep the site loadable with no .env present; real calls to Supabase just
+// fail at request time instead, same as before .env support was added.
+const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL || 'https://YOUR_PROJECT_ID.supabase.co';
+const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_ANON_PUBLIC_KEY';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+// Row ids are generated here rather than read back from the insert (no
+// .select().single()) because the devotee-facing booking form runs as the
+// anon (not signed-in) role, which only has INSERT access on these tables —
+// PostgREST can't return the inserted row without a matching SELECT grant,
+// and that grant is intentionally reserved for signed-in admins (see
+// supabase/migrations/002_admin_read_access.sql).
 async function submitBooking(validEntries, grandTotal, t) {
-  // 1. Create booking row
-  const { data: booking, error: bErr } = await supabase
+  const bookingId = crypto.randomUUID();
+  const { error: bErr } = await supabase
     .from('bookings')
-    .insert({ grand_total: grandTotal * 100, payment_status: 'pending' })
-    .select('id').single();
+    .insert({ id: bookingId, grand_total: grandTotal * 100, payment_status: 'pending' });
   if (bErr) throw new Error(bErr.message);
 
   // 2. Insert each devotee + their offerings
@@ -23,23 +32,23 @@ async function submitBooking(validEntries, grandTotal, t) {
     const subtotal = dev.offeringIds.reduce(
       (s, oid) => s + (OFFERINGS.find(o => o.id === oid)?.price ?? 0), 0);
 
-    const { data: devotee, error: dErr } = await supabase
+    const devoteeId = crypto.randomUUID();
+    const { error: dErr } = await supabase
       .from('devotees')
-      .insert({ booking_id: booking.id, name: dev.name.trim(),
+      .insert({ id: devoteeId, booking_id: bookingId, name: dev.name.trim(),
                 birth_star: dev.star, preferred_date: dev.date,
-                subtotal: subtotal * 100 })
-      .select('id').single();
+                subtotal: subtotal * 100 });
     if (dErr) throw new Error(dErr.message);
 
     const rows = dev.offeringIds.map(oid => {
       const o = OFFERINGS.find(x => x.id === oid);
-      return { devotee_id: devotee.id, offering_id: oid,
+      return { devotee_id: devoteeId, offering_id: oid,
                offering_name: t(`offeringsData.${o?.key}.name`) ?? String(oid), price: (o?.price ?? 0) * 100 };
     });
     const { error: oErr } = await supabase.from('devotee_offerings').insert(rows);
     if (oErr) throw new Error(oErr.message);
   }
-  return booking.id;
+  return bookingId;
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────
@@ -444,6 +453,143 @@ function NoticePage() {
   );
 }
 
+// Internal committee tool, not linked from the public nav — kept English-only
+// on purpose rather than wired into the i18n locale files. Auth is Supabase
+// Auth (email + password, no public sign-up — accounts are created directly
+// in the Supabase dashboard); what actually keeps devotee data private is the
+// RLS policy in supabase/migrations/002_admin_read_access.sql restricting
+// SELECT to signed-in users, not this page's login form by itself.
+function AdminPage() {
+  const [session, setSession] = useState(undefined); // undefined = still checking
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [signingIn, setSigningIn] = useState(false);
+
+  const [selectedDate, setSelectedDate] = useState(TODAY);
+  const [rows, setRows] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setSigningIn(true);
+    setAuthError('');
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setAuthError(error.message);
+    setSigningIn(false);
+  };
+
+  const handleLogout = () => supabase.auth.signOut();
+
+  const runSearch = async (dateStr) => {
+    setSearching(true);
+    setSearchError('');
+    const { data, error } = await supabase
+      .from('devotees')
+      .select('id, name, birth_star, subtotal, bookings(payment_status), devotee_offerings(offering_name, price)')
+      .eq('preferred_date', dateStr)
+      .order('name');
+    if (error) setSearchError(error.message);
+    else setRows(data);
+    setSearching(false);
+  };
+
+  useEffect(() => {
+    if (session) runSearch(selectedDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
+
+  if (session === undefined) {
+    return <div className="section"><p className="admin-loading">Loading…</p></div>;
+  }
+
+  if (!session) {
+    return (
+      <div className="section admin-section">
+        <h2 className="section-title">Admin Login</h2>
+        <div className="section-rule"/>
+        <form className="admin-login-form" onSubmit={handleLogin}>
+          <div className="fg">
+            <label>Email</label>
+            <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username"/>
+          </div>
+          <div className="fg">
+            <label>Password</label>
+            <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} autoComplete="current-password"/>
+          </div>
+          {authError && <p className="error-msg">⚠️ {authError}</p>}
+          <button type="submit" className="btn-cta" disabled={signingIn}>
+            {signingIn ? 'Signing in…' : 'Sign In'}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  const grandTotal = (rows || []).reduce((s, d) => s + (d.subtotal || 0), 0) / 100;
+
+  return (
+    <div className="section admin-section">
+      <div className="admin-header">
+        <h2 className="section-title">Bookings by Date</h2>
+        <div className="admin-account">
+          <span>{session.user.email}</span>
+          <button type="button" className="admin-logout" onClick={handleLogout}>Log Out</button>
+        </div>
+      </div>
+      <div className="section-rule"/>
+
+      <div className="admin-search-row">
+        <div className="fg">
+          <label>Date</label>
+          <input type="date" value={selectedDate}
+            onChange={e=>setSelectedDate(e.target.value)}/>
+        </div>
+        <button type="button" className="btn-cta" onClick={()=>runSearch(selectedDate)} disabled={searching}>
+          {searching ? 'Searching…' : 'Search'}
+        </button>
+      </div>
+
+      {searchError && <p className="error-msg">⚠️ {searchError}</p>}
+
+      {!searching && rows && (
+        rows.length > 0 ? (
+          <div className="admin-results">
+            <div className="table-scroll">
+              <table className="schedule-table admin-table">
+                <thead>
+                  <tr><th>Name</th><th>Birth Star</th><th>Offerings</th><th>Subtotal</th><th>Payment</th></tr>
+                </thead>
+                <tbody>
+                  {rows.map(d => (
+                    <tr key={d.id}>
+                      <td>{d.name}</td>
+                      <td>{d.birth_star}</td>
+                      <td>{(d.devotee_offerings || []).map(o=>o.offering_name).join(', ')}</td>
+                      <td>₹{((d.subtotal||0)/100).toLocaleString('en-IN')}</td>
+                      <td>{d.bookings?.payment_status ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="admin-total">Total: ₹{grandTotal.toLocaleString('en-IN')} across {rows.length} {rows.length===1?'devotee':'devotees'}</p>
+          </div>
+        ) : (
+          <p className="empty-state">No bookings found for this date.</p>
+        )
+      )}
+    </div>
+  );
+}
+
 function OfferingsPage({ lang }) {
   const { t } = useTranslation();
   const isMl = lang === 'ml';
@@ -669,7 +815,7 @@ const PAGE_PATHS = { Home: "/", About: "/about", Schedule: "/schedule", Notices:
 
 export default function App() {
   const { t, i18n } = useTranslation();
-  const [lang, setLang] = useState("en");
+  const [lang, setLang] = useState("ml");
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
 
@@ -702,7 +848,7 @@ export default function App() {
             <span className="nav-logo-icon">🪔</span>
             <div>
               <div className="nav-logo-name">{t('templeNameShort')}</div>
-              <div className="nav-logo-sub">അമ്മേ നാരായണ ഭദ്രേ നാരായണ</div>
+              <div className="nav-logo-sub">അമ്മേ നാരായണ ദേവീ നാരായണ</div>
             </div>
           </Link>
 
@@ -731,6 +877,8 @@ export default function App() {
         <Route path="/schedule" element={<SchedulePage lang={lang}/>}/>
         <Route path="/notices" element={<NoticePage/>}/>
         <Route path="/offerings" element={<OfferingsPage lang={lang}/>}/>
+        {/* Not in PAGE_KEYS/nav on purpose — an internal committee tool, not a public page. */}
+        <Route path="/admin" element={<AdminPage/>}/>
         <Route path="*" element={<Navigate to="/" replace/>}/>
       </Routes>
 

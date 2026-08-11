@@ -1670,3 +1670,68 @@ button {
   padding: .4rem .8rem;
   border-radius: 6px
 }
+
+/* ADMIN — internal committee tool, deliberately plainer than the public pages */
+.admin-loading {
+  text-align: center;
+  color: var(--color-muted);
+  padding: 3rem 0
+}
+
+.admin-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 340px;
+  margin: 1.5rem auto 0
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .75rem
+}
+
+.admin-account {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  font-size: .85rem;
+  color: var(--color-muted)
+}
+
+.admin-logout {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: .3rem .8rem;
+  font-size: .8rem;
+  transition: all .2s
+}
+
+.admin-logout:hover {
+  background: var(--color-background-alt)
+}
+
+.admin-search-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1.2rem 0 1.5rem
+}
+
+.admin-search-row .fg {
+  min-width: 200px
+}
+
+.admin-total {
+  text-align: right;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-top: .8rem
+}
