@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Routes, Route, Link, NavLink, Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import { useTranslation } from 'react-i18next';
 import { SCHEDULE_KEYS, SCHEDULE_TIMES, NOTICES_KEYS, STAR_KEYS, OFFERINGS, isPoojaDay, getDayOccasions, getMalayalamDate } from './data/config.js';
@@ -159,8 +160,18 @@ function DayDetailsPanel({ selectedDay, lang, onBookDay }) {
   );
 }
 
+// react-router doesn't scroll to top on navigation by default — this restores
+// the same "jump to top on page change" behaviour the old setState-based nav had.
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [pathname]);
+  return null;
+}
+
 // ── Pages ─────────────────────────────────────────────────────────────────────
-function HomePage({ onNavigate }) {
+function HomePage() {
   const { t } = useTranslation();
 
   return (
@@ -183,7 +194,7 @@ function HomePage({ onNavigate }) {
       <div className="section intro-section">
         <p className="intro-text">{t('home.intro')}</p>
         <div className="cta-center">
-          <button className="btn-cta" onClick={()=>onNavigate('About')}>{t('home.aboutCta')}</button>
+          <Link className="btn-cta" to="/about">{t('home.aboutCta')}</Link>
         </div>
       </div>
       <div className="timing-bar">
@@ -348,13 +359,15 @@ function AboutPage() {
   );
 }
 
-function SchedulePage({ lang, onBookDay }) {
+function SchedulePage({ lang }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [calView, setCalView] = useState(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
   const [selectedDay, setSelectedDay] = useState(null);
+  const onBookDay = iso => navigate(`/offerings?date=${iso}`);
 
   return (
     <div className="section">
@@ -431,9 +444,11 @@ function NoticePage() {
   );
 }
 
-function OfferingsPage({ lang, presetDate }) {
+function OfferingsPage({ lang }) {
   const { t } = useTranslation();
   const isMl = lang === 'ml';
+  const [searchParams] = useSearchParams();
+  const presetDate = searchParams.get('date') || '';
   const [calView, setCalView] = useState(() => {
     const base = presetDate ? new Date(`${presetDate}T00:00:00`) : new Date();
     return new Date(base.getFullYear(), base.getMonth(), 1);
@@ -650,16 +665,13 @@ function OfferingsPage({ lang, presetDate }) {
 
 // ── App ───────────────────────────────────────────────────────────────────────
 const PAGE_KEYS = ["Home","About","Schedule","Notices","Offerings"];
+const PAGE_PATHS = { Home: "/", About: "/about", Schedule: "/schedule", Notices: "/notices", Offerings: "/offerings" };
 
 export default function App() {
   const { t, i18n } = useTranslation();
   const [lang, setLang] = useState("en");
-  const [page, setPage] = useState("Home");
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
-  // Set when a day is clicked on the Schedule page's calendar; OfferingsPage
-  // consumes it once (as the first devotee's date) via a lazy initializer.
-  const [bookingDate, setBookingDate] = useState(null);
 
   useEffect(() => {
     i18n.changeLanguage(lang);
@@ -681,20 +693,18 @@ export default function App() {
     Notices: t('nav.notices'), Offerings: t('nav.offerings'),
   };
 
-  const go = p => { setPage(p); setMenuOpen(false); setBookingDate(null); window.scrollTo({top:0,behavior:'smooth'}); };
-  const bookDay = iso => { setBookingDate(iso); setPage('Offerings'); setMenuOpen(false); window.scrollTo({top:0,behavior:'smooth'}); };
-
   return (
     <div className={`app-shell${lang==='ml' ? ' ml' : ''}`} data-theme={theme}>
+      <ScrollToTop/>
       <nav className="nav">
         <div className="nav-inner">
-          <a className="nav-logo" href="#" onClick={e=>{e.preventDefault();go("Home");}}>
+          <Link className="nav-logo" to="/">
             <span className="nav-logo-icon">🪔</span>
             <div>
               <div className="nav-logo-name">{t('templeNameShort')}</div>
               <div className="nav-logo-sub">അമ്മേ നാരായണ ഭദ്രേ നാരായണ</div>
             </div>
-          </a>
+          </Link>
 
           <div className="nav-right">
             <button className="hamburger" onClick={()=>setMenuOpen(o=>!o)} aria-label="Menu">
@@ -705,20 +715,24 @@ export default function App() {
           <ul className={`nav-links${menuOpen?' open':''}`}>
             {PAGE_KEYS.map(p=>(
               <li key={p}>
-                <button className={page===p?'active':''} onClick={()=>go(p)}>
+                <NavLink to={PAGE_PATHS[p]} end className={({isActive})=>isActive?'active':''}
+                  onClick={()=>setMenuOpen(false)}>
                   {NAV_LABELS[p]}
-                </button>
+                </NavLink>
               </li>
             ))}
           </ul>
         </div>
       </nav>
 
-      {page==="Home"      && <HomePage      onNavigate={go}/>}
-      {page==="About"     && <AboutPage/>}
-      {page==="Schedule"  && <SchedulePage lang={lang} onBookDay={bookDay}/>}
-      {page==="Notices"   && <NoticePage/>}
-      {page==="Offerings" && <OfferingsPage lang={lang} presetDate={bookingDate}/>}
+      <Routes>
+        <Route path="/" element={<HomePage/>}/>
+        <Route path="/about" element={<AboutPage/>}/>
+        <Route path="/schedule" element={<SchedulePage lang={lang}/>}/>
+        <Route path="/notices" element={<NoticePage/>}/>
+        <Route path="/offerings" element={<OfferingsPage lang={lang}/>}/>
+        <Route path="*" element={<Navigate to="/" replace/>}/>
+      </Routes>
 
       <footer className="footer">
         <p className="footer-brand">
