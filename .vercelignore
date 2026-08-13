@@ -1,0 +1,15 @@
+# Backend source — not part of the Vite build, no reason to upload it
+# alongside the frontend deploy (SQL migrations, Edge Function source).
+docs/
+supabase/
+
+# Claude Code's own project directory
+.claude/
+
+# Never upload secrets, even though these are also gitignored
+.env
+.env.local
+
+# Vercel installs deps and builds fresh — these are local-only
+node_modules/
+dist/
