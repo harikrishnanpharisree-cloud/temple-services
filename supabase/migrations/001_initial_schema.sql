@@ -80,6 +80,16 @@ CREATE POLICY "Service role reads devotees"
 CREATE POLICY "Service role reads devotee_offerings"
   ON devotee_offerings FOR SELECT TO service_role USING (true);
 
+-- RLS policies alone aren't enough to allow access — Postgres checks the
+-- base table privilege first, before RLS is even consulted. New tables
+-- only grant PUBLIC the TRIGGER/REFERENCES/TRUNCATE privileges by default,
+-- not INSERT/SELECT, so anon/authenticated need those granted explicitly.
+-- (Confirmed by testing against a local `supabase start` stack: INSERT
+-- failed with "permission denied for table bookings" even with the
+-- INSERT policy above already in place, until this was added.)
+GRANT INSERT ON bookings, devotees, devotee_offerings TO anon;
+GRANT SELECT ON bookings, devotees, devotee_offerings TO authenticated;
+
 -- ============================================================
 -- ADMIN VIEW (convenient joined view for the temple dashboard)
 -- ============================================================

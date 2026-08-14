@@ -1735,3 +1735,159 @@ button {
   color: var(--color-primary);
   margin-top: .8rem
 }
+
+.admin-filter-input {
+  width: 100%;
+  max-width: 320px;
+  border: 1.5px solid var(--color-background-alt);
+  border-radius: 6px;
+  padding: .55rem .85rem;
+  font-size: .9rem;
+  color: var(--color-text);
+  background: var(--color-card-bg);
+  margin-bottom: 1rem;
+  transition: border-color .2s
+}
+
+.admin-filter-input:focus {
+  outline: none;
+  border-color: var(--color-secondary)
+}
+
+.admin-offerings-summary {
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1.5px solid var(--color-background-alt)
+}
+
+.admin-offerings-summary h4 {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: .6rem
+}
+
+.admin-offerings-summary ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem
+}
+
+.admin-offerings-summary li {
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+  font-size: .85rem
+}
+
+.admin-offering-name {
+  color: var(--color-text);
+  flex: 1
+}
+
+.admin-offering-count {
+  color: var(--color-primary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums
+}
+
+.admin-offering-total {
+  color: var(--color-muted);
+  font-size: .8rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 4.5rem;
+  text-align: right
+}
+
+/* ADMIN CHART — single-series (booking count), so one hue is enough; no
+   legend needed. "Today" gets the accent color as the one thing worth
+   calling out, everything else stays a single flat color. */
+.admin-chart {
+  margin: 1.5rem 0
+}
+
+.admin-chart-title {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 1rem
+}
+
+.admin-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 140px;
+  padding-bottom: .6rem;
+  border-bottom: 1.5px solid var(--color-background-alt)
+}
+
+.admin-chart-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: .3rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer
+}
+
+.admin-chart-col:hover .admin-chart-bar:not(.today) {
+  background: var(--color-primary-dark)
+}
+
+.admin-chart-value {
+  font-size: .72rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums
+}
+
+.admin-chart-bar {
+  width: 100%;
+  min-height: 3px;
+  background: var(--color-primary);
+  border-radius: 4px 4px 0 0;
+  transition: box-shadow .15s
+}
+
+.admin-chart-bar.today {
+  background: var(--color-secondary)
+}
+
+/* Which date the table below is currently showing — independent of
+   .today, since an admin can click any bar to look at a different day. */
+.admin-chart-bar.selected {
+  box-shadow: 0 0 0 2px var(--color-card-bg), 0 0 0 4px var(--color-primary)
+}
+
+.admin-chart-bar.today.selected {
+  box-shadow: 0 0 0 2px var(--color-card-bg), 0 0 0 4px var(--color-secondary)
+}
+
+.admin-chart-label {
+  font-size: .68rem;
+  color: var(--color-muted);
+  white-space: nowrap
+}
+
+.admin-chart-label.today {
+  color: var(--color-primary);
+  font-weight: 700
+}
+
+@media(max-width:700px) {
+  .admin-chart-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed
+  }
+}

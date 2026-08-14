@@ -109,7 +109,7 @@ function PoojaCalendarGrid({ viewDate, onPrevMonth, onNextMonth, selectedValue, 
           if (markedDates && markedDates.has(iso)) cls.push('has-items');
           return (
             <button type="button" key={i} disabled={disabled} className={cls.join(' ')}
-              onClick={() => onSelectDay(iso)}>
+              data-date={iso} onClick={() => onSelectDay(iso)}>
               {c.date.getDate()}
             </button>
           );
@@ -470,12 +470,40 @@ function AdminPage() {
   const [rows, setRows] = useState(null);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [chartData, setChartData] = useState(null);
+  const [filterText, setFilterText] = useState('');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // Overview chart — independent of the date search below, so it fetches
+  // once on login rather than on every date-picker change.
+  useEffect(() => {
+    if (!session) return;
+    (async () => {
+      const today = new Date(`${TODAY}T00:00:00`);
+      const addDays = n => toISO(new Date(today.getFullYear(), today.getMonth(), today.getDate() + n));
+      const start = addDays(-7);
+      const end = addDays(7);
+      const { data, error } = await supabase
+        .from('devotees')
+        .select('preferred_date')
+        .gte('preferred_date', start)
+        .lte('preferred_date', end);
+      if (error) return;
+      const counts = {};
+      data.forEach(d => { counts[d.preferred_date] = (counts[d.preferred_date] || 0) + 1; });
+      const days = [];
+      for (let i = -7; i <= 7; i++) {
+        const iso = addDays(i);
+        days.push({ date: iso, count: counts[iso] || 0 });
+      }
+      setChartData(days);
+    })();
+  }, [session]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -487,6 +515,14 @@ function AdminPage() {
   };
 
   const handleLogout = () => supabase.auth.signOut();
+
+  // Shared by the date <input> and clicking a chart bar — resets the name
+  // filter too, so a filter left over from a previous date doesn't quietly
+  // hide everything on the new one.
+  const changeDate = (iso) => {
+    setFilterText('');
+    setSelectedDate(iso);
+  };
 
   const runSearch = async (dateStr) => {
     setSearching(true);
@@ -501,10 +537,15 @@ function AdminPage() {
     setSearching(false);
   };
 
+  // Re-runs whenever the date picker changes, not just on login — otherwise
+  // picking a new date updates the input but leaves the previous date's
+  // results on screen until "Search" is clicked separately. The Search
+  // button stays too, for re-fetching the same date (e.g. a booking just
+  // came in) without having to change the date and back.
   useEffect(() => {
     if (session) runSearch(selectedDate);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  }, [session, selectedDate]);
 
   if (session === undefined) {
     return <div className="section"><p className="admin-loading">Loading…</p></div>;
@@ -533,7 +574,27 @@ function AdminPage() {
     );
   }
 
-  const grandTotal = (rows || []).reduce((s, d) => s + (d.subtotal || 0), 0) / 100;
+  const filterQuery = filterText.trim().toLowerCase();
+  const filteredRows = (rows || []).filter(d => !filterQuery
+    || d.name.toLowerCase().includes(filterQuery)
+    || (d.birth_star || '').toLowerCase().includes(filterQuery));
+
+  const grandTotal = filteredRows.reduce((s, d) => s + (d.subtotal || 0), 0) / 100;
+  const maxChartCount = chartData ? Math.max(1, ...chartData.map(d => d.count)) : 1;
+
+  // Offerings grouped by name across the filtered devotees — a quick "what
+  // needs to be prepared today" breakdown, rather than repeating the same
+  // per-devotee list already in the table below.
+  const offeringsSummary = {};
+  filteredRows.forEach(d => {
+    (d.devotee_offerings || []).forEach(o => {
+      const entry = offeringsSummary[o.offering_name] || { count: 0, total: 0 };
+      entry.count += 1;
+      entry.total += o.price || 0;
+      offeringsSummary[o.offering_name] = entry;
+    });
+  });
+  const offeringsSummaryList = Object.entries(offeringsSummary).sort((a, b) => b[1].count - a[1].count);
 
   return (
     <div className="section admin-section">
@@ -546,11 +607,37 @@ function AdminPage() {
       </div>
       <div className="section-rule"/>
 
+      {chartData && (
+        <div className="admin-chart">
+          <h3 className="admin-chart-title">Bookings — past 7 days, today, next 7 days</h3>
+          <div className="admin-chart-bars">
+            {chartData.map(d => {
+              const isToday = d.date === TODAY;
+              const isSelected = d.date === selectedDate;
+              const pct = (d.count / maxChartCount) * 100;
+              const label = new Date(`${d.date}T00:00:00`).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
+              const full = new Date(`${d.date}T00:00:00`).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+              return (
+                <button type="button" className="admin-chart-col" key={d.date}
+                  onClick={() => changeDate(d.date)}
+                  aria-pressed={isSelected}
+                  title={`${full}: ${d.count} booking${d.count === 1 ? '' : 's'}`}>
+                  <span className="admin-chart-value">{d.count}</span>
+                  <div className={`admin-chart-bar${isToday ? ' today' : ''}${isSelected ? ' selected' : ''}`}
+                    style={{ height: `${pct}%` }}/>
+                  <span className={`admin-chart-label${isToday ? ' today' : ''}`}>{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="admin-search-row">
         <div className="fg">
           <label>Date</label>
           <input type="date" value={selectedDate}
-            onChange={e=>setSelectedDate(e.target.value)}/>
+            onChange={e=>changeDate(e.target.value)}/>
         </div>
         <button type="button" className="btn-cta" onClick={()=>runSearch(selectedDate)} disabled={searching}>
           {searching ? 'Searching…' : 'Search'}
@@ -562,25 +649,49 @@ function AdminPage() {
       {!searching && rows && (
         rows.length > 0 ? (
           <div className="admin-results">
-            <div className="table-scroll">
-              <table className="schedule-table admin-table">
-                <thead>
-                  <tr><th>Name</th><th>Birth Star</th><th>Offerings</th><th>Subtotal</th><th>Payment</th></tr>
-                </thead>
-                <tbody>
-                  {rows.map(d => (
-                    <tr key={d.id}>
-                      <td>{d.name}</td>
-                      <td>{d.birth_star}</td>
-                      <td>{(d.devotee_offerings || []).map(o=>o.offering_name).join(', ')}</td>
-                      <td>₹{((d.subtotal||0)/100).toLocaleString('en-IN')}</td>
-                      <td>{d.bookings?.payment_status ?? '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="admin-total">Total: ₹{grandTotal.toLocaleString('en-IN')} across {rows.length} {rows.length===1?'devotee':'devotees'}</p>
+            <input type="text" className="admin-filter-input"
+              placeholder="Filter by name or birth star…"
+              value={filterText} onChange={e=>setFilterText(e.target.value)}/>
+
+            {filteredRows.length > 0 ? (
+              <>
+                <div className="table-scroll">
+                  <table className="schedule-table admin-table">
+                    <thead>
+                      <tr><th>Name</th><th>Birth Star</th><th>Offerings</th><th>Subtotal</th><th>Payment</th></tr>
+                    </thead>
+                    <tbody>
+                      {filteredRows.map(d => (
+                        <tr key={d.id}>
+                          <td>{d.name}</td>
+                          <td>{d.birth_star}</td>
+                          <td>{(d.devotee_offerings || []).map(o=>o.offering_name).join(', ')}</td>
+                          <td>₹{((d.subtotal||0)/100).toLocaleString('en-IN')}</td>
+                          <td>{d.bookings?.payment_status ?? '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="admin-offerings-summary">
+                  <h4>Offerings breakdown</h4>
+                  <ul>
+                    {offeringsSummaryList.map(([name, o]) => (
+                      <li key={name}>
+                        <span className="admin-offering-name">{name}</span>
+                        <span className="admin-offering-count">×{o.count}</span>
+                        <span className="admin-offering-total">₹{(o.total / 100).toLocaleString('en-IN')}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <p className="admin-total">Total: ₹{grandTotal.toLocaleString('en-IN')} across {filteredRows.length} {filteredRows.length===1?'devotee':'devotees'}</p>
+              </>
+            ) : (
+              <p className="empty-state">No devotees match "{filterText}".</p>
+            )}
           </div>
         ) : (
           <p className="empty-state">No bookings found for this date.</p>
